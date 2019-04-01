@@ -310,7 +310,7 @@ class Bitmap(object):
         dx = abs(x2 - x1)
         if dx == 0:
             print("Undefined slope")
-            #sys.exit()
+            # sys.exit()
         steep = dy > dx
 
         if steep:
@@ -380,3 +380,19 @@ class Bitmap(object):
                 x1, y1, x2, y2 = self.transform_img(coords, translate, scale)
                 self.glLine(self.transform_xn(x1), self.transform_yn(y1), self.transform_xn(x2),
                             self.transform_yn(y2))
+
+    def baryncetrinc(self):
+        pass
+
+    def cross(self, vec1, vec2):
+        """
+        Simple function that is a vectorial product of 2 vectors
+        :param vec1:
+        :param vec2:
+        :return:
+        """
+        x = vec1[1] * vec2[2] - vec2[1] * vec1[2]
+        y = vec1[2] * vec2[0] - vec2[1] * vec1[0]
+        z = vec1[0] * vec2[1] - vec2[0] * vec1[1]
+
+        return [x, y, z]
