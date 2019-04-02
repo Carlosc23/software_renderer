@@ -381,8 +381,19 @@ class Bitmap(object):
                 self.glLine(self.transform_xn(x1), self.transform_yn(y1), self.transform_xn(x2),
                             self.transform_yn(y2))
 
-    def baryncetrinc(self):
-        pass
+    def baryncetric(self, vec1, vec2, vec3, P):
+        vect1 = [vec3[0] - vec1[0], vec2[0] - vec1[0], vec1[0] - P[0]]
+        vect2 = [vec3[1] - vec1[1], vec2[1] - vec1[1], vec1[1] - P[1]]
+        u = self.cross(vect1, vect2)
+        if abs(u[2]) < 1:
+            return [-1, 1, 1]
+
+        else:
+            return [
+                1 - (u[0] + u[1]) / u[2],
+                u[1] / u[2],
+                u[0] / u[2]
+            ]
 
     def cross(self, vec1, vec2):
         """
@@ -396,3 +407,7 @@ class Bitmap(object):
         z = vec1[0] * vec2[1] - vec2[0] * vec1[1]
 
         return [x, y, z]
+
+    def sub(self, vec1, vec2):
+        vec3 = [vec1[0] - vec2[0], vec1[1] - vec2[1], vec1[2] - vec2[2]]
+        return vec3
