@@ -411,3 +411,15 @@ class Bitmap(object):
     def sub(self, vec1, vec2):
         vec3 = [vec1[0] - vec2[0], vec1[1] - vec2[1], vec1[2] - vec2[2]]
         return vec3
+
+    def triangle(self, vec1, vec2, vec3):
+        bbox_min,bbox_max = self.bounding_box(vec1,vec2)
+
+
+    def bounding_box(self, vec1, vec2):
+        """
+        This method is used to calculate a bounding box around a triangle
+        """
+        vec1.sort()
+        vec2.sort()
+        return [vec1[0], vec2[0]], [vec1[-1], vec2[-1]]
