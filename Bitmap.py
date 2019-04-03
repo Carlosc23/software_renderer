@@ -408,12 +408,19 @@ class Bitmap(object):
 
         return [x, y, z]
 
-    def sub(self, vec1, vec2):
+    def sub(self, vec1, vec2,color=None):
         vec3 = [vec1[0] - vec2[0], vec1[1] - vec2[1], vec1[2] - vec2[2]]
         return vec3
 
     def triangle(self, vec1, vec2, vec3):
         bbox_min,bbox_max = self.bounding_box(vec1,vec2)
+        for x in range(bbox_min[0], bbox_max[0]+ 1):
+            for y in range(bbox_min[1], bbox_max[1] + 1):
+                w, v, u = self.barycentric(vec1, vec2, vec3, [x, y])
+                if w < 0 or v < 0 or u < 0:  # 0 is actually a valid value! (it is on the edge)
+                    continue
+
+                self.point(x, y, color)
 
 
     def bounding_box(self, vec1, vec2):
