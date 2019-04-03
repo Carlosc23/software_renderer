@@ -376,16 +376,17 @@ class Bitmap(object):
             print("---------")
             print(vcount)
             if vcount == 3:
-                f1 = face[j][0] - 1
+                f1 = face[0][0] - 1
                 f2 = face[1][0] - 1
                 f3 = face[2][0] - 1
                 v1 = model.vertices[f1]
                 v2 = model.vertices[f2]
                 v3 = model.vertices[f3]
                 coords = v1[0], v1[1], v1[2], v2[0], v2[1], v2[2], v3[0], v3[1], v3[2]
-                x1, y1, x2, y2 = self.transform_img(coords, translate, scale)
-                self.glLine(self.transform_xn(x1), self.transform_yn(y1), self.transform_xn(x2),
-                            self.transform_yn(y2))
+                x1, y1, z1, x2, y2, z2, x3, y3, z3 = self.transform_img(coords, translate, scale)
+
+               # self.glLine(self.transform_xn(x1), self.transform_yn(y1), self.transform_xn(x2),
+                #            self.transform_yn(y2))
 
     def baryncetric(self, vec1, vec2, vec3, P):
         vect1 = [vec3[0] - vec1[0], vec2[0] - vec1[0], vec1[0] - P[0]]
@@ -401,6 +402,13 @@ class Bitmap(object):
                 u[0] / u[2]
             ]
 
+    def norm(self,V):
+        vl = len(V)
+
+        if not vl:
+            return [0,0,0]
+
+        return [(V[i]/vl) for i in range(vl)]
     def cross(self, vec1, vec2):
         """
         Simple function that is a vectorial product of 2 vectors
