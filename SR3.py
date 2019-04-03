@@ -14,6 +14,6 @@ x.glClear()
 x.glColor(1, 0, 0)
 x.glVertex(0, 0)
 # Render the mushroom
-x.load('./models/Charmander-text2.obj', (4, 3), (100, 100))
+x.load('./models/mushroom.obj', (4, 3), (100, 100))
 
 x.glFinish()

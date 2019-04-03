@@ -295,11 +295,6 @@ class Bitmap(object):
                 :param xf: final x
                 :param yf final y
                 """
-        print("**********************")
-        print(xo, "valor x1")
-        print(yo, "valor y1 ")
-        print(xf, "valor x2")
-        print(yf, "valor y2")
 
         x1 = math.floor(self.transform_x(xo))
         x2 = math.floor(self.transform_x(xf))
@@ -339,7 +334,7 @@ class Bitmap(object):
                 y += 1 if y1 < y2 else -1
                 threshold += 1 * 2 * dx
 
-    def transform_img(self, coords, translate=(0, 0), scale=(1, 1)):
+    def transform_img(self, coords, translate=(0, 0, 0), scale=(1, 1, 1)):
         """
         This method transform in size and in coords the original image
         :param coords: The original coords of the vertex
@@ -347,13 +342,20 @@ class Bitmap(object):
         :param scale: the params that make bigger or smaller the vertex
         :return: the coords transformated
         """
-        x1, y1, x2, y2 = coords
-        x1 = math.floor((x1 + translate[0]) * scale[0]);
-        y1 = math.floor((y1 + translate[1]) * scale[1]);
-        x2 = math.floor((x2 + translate[0]) * scale[0]);
-        y2 = math.floor((y2 + translate[1]) * scale[1]);
+        x1, y1, z1, x2, y2, z2, x3, y3, z3 = coords
+        x1 = math.floor((x1 + translate[0]) * scale[0])
+        y1 = math.floor((y1 + translate[1]) * scale[1])
+        z1 = math.floor((z1 + translate[2]) * scale[2])
 
-        return x1, y1, x2, y2
+        x2 = math.floor((x2 + translate[0]) * scale[0])
+        y2 = math.floor((y2 + translate[1]) * scale[1])
+        z2 = math.floor((z2 + translate[2]) * scale[2])
+
+        x3 = math.floor((x3 + translate[0]) * scale[0])
+        y3 = math.floor((y3 + translate[1]) * scale[1])
+        z3 = math.floor((z3 + translate[2]) * scale[2])
+
+        return x1, y1, z1, x2, y2, z2, x3, y3, z3
 
     def load(self, filename, translate, scale):
         """
@@ -367,16 +369,20 @@ class Bitmap(object):
         """
         model = obj_loader(filename)
 
+        light = [0, 0, 1]
+
         for face in model.vfaces:
             vcount = len(face)
-            for j in range(vcount):
-                f1 = face[j][0]
-                f2 = face[(j + 1) % vcount][0]
-
-                v1 = model.vertices[f1 - 1]
-                v2 = model.vertices[f2 - 1]
-
-                coords = v1[0], v1[1], v2[0], v2[1]
+            print("---------")
+            print(vcount)
+            if vcount == 3:
+                f1 = face[j][0] - 1
+                f2 = face[1][0] - 1
+                f3 = face[2][0] - 1
+                v1 = model.vertices[f1]
+                v2 = model.vertices[f2]
+                v3 = model.vertices[f3]
+                coords = v1[0], v1[1], v1[2], v2[0], v2[1], v2[2], v3[0], v3[1], v3[2]
                 x1, y1, x2, y2 = self.transform_img(coords, translate, scale)
                 self.glLine(self.transform_xn(x1), self.transform_yn(y1), self.transform_xn(x2),
                             self.transform_yn(y2))
@@ -408,20 +414,19 @@ class Bitmap(object):
 
         return [x, y, z]
 
-    def sub(self, vec1, vec2,color=None):
+    def sub(self, vec1, vec2, color=None):
         vec3 = [vec1[0] - vec2[0], vec1[1] - vec2[1], vec1[2] - vec2[2]]
         return vec3
 
     def triangle(self, vec1, vec2, vec3):
-        bbox_min,bbox_max = self.bounding_box(vec1,vec2)
-        for x in range(bbox_min[0], bbox_max[0]+ 1):
+        bbox_min, bbox_max = self.bounding_box(vec1, vec2)
+        for x in range(bbox_min[0], bbox_max[0] + 1):
             for y in range(bbox_min[1], bbox_max[1] + 1):
                 w, v, u = self.barycentric(vec1, vec2, vec3, [x, y])
                 if w < 0 or v < 0 or u < 0:  # 0 is actually a valid value! (it is on the edge)
                     continue
 
-                self.point(x, y, color)
-
+                self.point(x, y)
 
     def bounding_box(self, vec1, vec2):
         """
