@@ -357,6 +357,33 @@ class Bitmap(object):
 
         return x1, y1, z1, x2, y2, z2, x3, y3, z3
 
+    def transform_img2(self, coords, translate=(0, 0, 0), scale=(1, 1, 1)):
+        """
+        This method transform in size and in coords the original image
+        :param coords: The original coords of the vertex
+        :param translate: the params that translates the vertex
+        :param scale: the params that make bigger or smaller the vertex
+        :return: the coords transformated
+        """
+        x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4 = coords
+        x1 = math.floor((x1 + translate[0]) * scale[0])
+        y1 = math.floor((y1 + translate[1]) * scale[1])
+        z1 = math.floor((z1 + translate[2]) * scale[2])
+
+        x2 = math.floor((x2 + translate[0]) * scale[0])
+        y2 = math.floor((y2 + translate[1]) * scale[1])
+        z2 = math.floor((z2 + translate[2]) * scale[2])
+
+        x3 = math.floor((x3 + translate[0]) * scale[0])
+        y3 = math.floor((y3 + translate[1]) * scale[1])
+        z3 = math.floor((z3 + translate[2]) * scale[2])
+
+        x4 = math.floor((x4 + translate[0]) * scale[0])
+        y4 = math.floor((y4 + translate[1]) * scale[1])
+        z4 = math.floor((z4 + translate[2]) * scale[2])
+
+        return x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4
+
     def load(self, filename, translate, scale):
         """
         Based on example of Graphics Course
@@ -379,16 +406,53 @@ class Bitmap(object):
                 f1 = face[0][0] - 1
                 f2 = face[1][0] - 1
                 f3 = face[2][0] - 1
+
                 v1 = model.vertices[f1]
                 v2 = model.vertices[f2]
                 v3 = model.vertices[f3]
                 coords = v1[0], v1[1], v1[2], v2[0], v2[1], v2[2], v3[0], v3[1], v3[2]
                 x1, y1, z1, x2, y2, z2, x3, y3, z3 = self.transform_img(coords, translate, scale)
+                vp = self.cross(self.sub([x2, y2, z2], [x1, y1, z1]), self.sub([x3, y3, z3], [x1, y1, z1]))
+                normal = self.norm(vp)
+                intensity = self.dot(normal, light)
+                grey = round(255 * intensity)
 
-               # self.glLine(self.transform_xn(x1), self.transform_yn(y1), self.transform_xn(x2),
-                #            self.transform_yn(y2))
+                if grey < 0:
+                    continue
+                self.triangle([x1, y1, z1], [x2, y2, z2], [x3, y3, z3], color(grey, grey, grey))
+            else:
+                f1 = face[0][0] - 1
+                f2 = face[1][0] - 1
+                f3 = face[2][0] - 1
+                f4 = face[3][0] - 1
+                v1 = model.vertices[f1]
+                v2 = model.vertices[f2]
+                v3 = model.vertices[f3]
+                v4 = model.vertices[f4]
+                coords = v1[0], v1[1], v1[2], v2[0], v2[1], v2[2], v3[0], v3[1], v3[2], v4[0], v4[1], v4[2]
+                x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4 = self.transform_img2(coords, translate, scale)
+                vertices = [
+                    [x1, y1, z1],
+                    [x2, y2, z2],
+                    [x3, y3, z3],
+                    [x4, y4, z4]
+                ]
+                print(vertices)
+                vp = self.cross(self.sub(vertices[0], vertices[1]), self.sub(vertices[1], vertices[2]))
+                normal = self.norm(vp)
+                intensity = self.dot(normal, light)
+                grey = round(255 * intensity)
+                if grey < 0:
+                    continue
 
-    def baryncetric(self, vec1, vec2, vec3, P):
+                A, B, C, D = vertices
+                print("gre")
+                print(grey)
+                print(intensity)
+                self.triangle(A, B, C, color(grey, grey, grey))
+                self.triangle(A, C, D, color(grey, grey, grey))
+
+    def barycentric(self, vec1, vec2, vec3, P):
         vect1 = [vec3[0] - vec1[0], vec2[0] - vec1[0], vec1[0] - P[0]]
         vect2 = [vec3[1] - vec1[1], vec2[1] - vec1[1], vec1[1] - P[1]]
         u = self.cross(vect1, vect2)
@@ -402,13 +466,20 @@ class Bitmap(object):
                 u[0] / u[2]
             ]
 
-    def norm(self,V):
-        vl = len(V)
+    def length(self, v0):
+        """
+          Input: 1 size 3 vector
+          Output: Scalar with the length of the vector
+        """
+        return (v0[0] ** 2 + v0[1] ** 2 + v0[2] ** 2) ** 0.5
+
+    def norm(self, V):
+        vl = self.length(V)
 
         if not vl:
-            return [0,0,0]
+            return [0, 0, 0]
+        return [(V[i] / vl) for i in range(3)]
 
-        return [(V[i]/vl) for i in range(vl)]
     def cross(self, vec1, vec2):
         """
         Simple function that is a vectorial product of 2 vectors
@@ -416,9 +487,9 @@ class Bitmap(object):
         :param vec2:
         :return:
         """
-        x = vec1[1] * vec2[2] - vec2[1] * vec1[2]
-        y = vec1[2] * vec2[0] - vec2[1] * vec1[0]
-        z = vec1[0] * vec2[1] - vec2[0] * vec1[1]
+        x = vec1[1] * vec2[2] - vec1[2]*vec2[1]
+        y = vec1[2] * vec2[0] - vec1[0]*vec2[2]
+        z = vec1[0] * vec2[1] - vec1[1]*vec2[0]
 
         return [x, y, z]
 
@@ -426,20 +497,26 @@ class Bitmap(object):
         vec3 = [vec1[0] - vec2[0], vec1[1] - vec2[1], vec1[2] - vec2[2]]
         return vec3
 
-    def triangle(self, vec1, vec2, vec3):
-        bbox_min, bbox_max = self.bounding_box(vec1, vec2)
+    def triangle(self, vec1, vec2, vec3, color):
+        bbox_min, bbox_max = self.bounding_box(vec1, vec2,vec3)
         for x in range(bbox_min[0], bbox_max[0] + 1):
             for y in range(bbox_min[1], bbox_max[1] + 1):
                 w, v, u = self.barycentric(vec1, vec2, vec3, [x, y])
                 if w < 0 or v < 0 or u < 0:  # 0 is actually a valid value! (it is on the edge)
                     continue
 
-                self.point(x, y)
+                self.point(x, y, color)
 
-    def bounding_box(self, vec1, vec2):
+    def bounding_box(self, *vertices):
         """
         This method is used to calculate a bounding box around a triangle
         """
+
+        vec1 = [(vertex[0]) for vertex in vertices]
+        vec2 = [(vertex[1]) for vertex in vertices]
         vec1.sort()
         vec2.sort()
         return [vec1[0], vec2[0]], [vec1[-1], vec2[-1]]
+
+    def dot(self, v1, v2):
+        return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]
