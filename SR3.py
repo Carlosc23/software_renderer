@@ -7,13 +7,13 @@ from SR1 import SoftwareRender
 
 
 xo, yo, xf, yf = -1, -1, 1, 1
-x = SoftwareRender('out.bmp')
+x = SoftwareRender('out4.bmp')
 x.glCreateWindow(800, 600)
 x.glViewPort(0, 0, 800, 600)
 x.glClear()
 x.glColor(1, 0, 0)
 x.glVertex(0, 0)
 # Render the mushroom
-x.load('./models/mushroom.obj', (10, 2, 0), (45, 40, 40))
-
+x.load('./models/mushroom.obj', (10, 2, 0), (45, 40, 40),True)
+#x.load('./models/face.obj', (25, 5, 0), (15, 15, 15))
 x.glFinish()

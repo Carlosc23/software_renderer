@@ -49,6 +49,7 @@ class Bitmap(object):
         self.vr = 255
         self.vg = 200
         self.vb = 200
+        self.zbuffer_flag = False
         self.glclear()
 
     def glclear(self):
@@ -60,7 +61,25 @@ class Bitmap(object):
             [color(self.r, self.g, self.b) for x in range(self.width)]
             for y in range(self.height)
         ]
+        self.zbuffer = [
+            [-float('inf') for x in range(self.width)]
+            for y in range(self.height)
+        ]
 
+        self.zbuffer_color = [
+            [color(0, 0, 0) for x in range(self.width)]
+            for y in range(self.height)
+        ]
+
+    def fill_zbuffer_color(self):
+        max_z_value = max([max(r) for r in self.zbuffer])
+        for x in range(self.height):
+            for y in range(self.width):
+                color_zbuffer = int(self.zbuffer[x][y] * 255 / max_z_value)if self.zbuffer[x][y] > 0 else 0
+                try:
+                    self.zbuffer_color[y][x] = color(color_zbuffer, color_zbuffer, color_zbuffer)
+                except:
+                    pass
     def glViewPort(self, x, y, width, height):
         """
         Define the area of the image where the glVertex will draw
@@ -147,6 +166,7 @@ class Bitmap(object):
         :param filename: name of the file that will be saved
         :return:
         """
+
         f = open(filename, 'wb')
 
         # file header (14)
@@ -171,11 +191,17 @@ class Bitmap(object):
         f.write(dword(0))
 
         # pixel data
-
-        for x in range(self.height):
-            for y in range(self.width):
-                f.write(self.pixels[x][y])
+        if self.zbuffer_flag:
+            self.fill_zbuffer_color()
+            for x in range(self.height):
+                for y in range(self.width):
+                    f.write(self.zbuffer_color[x][y])
+        else:
+            for x in range(self.height):
+                for y in range(self.width):
+                    f.write(self.pixels[x][y])
         f.close()
+
 
     def point(self, x, y, color=color(255, 200, 200)):
         """
@@ -384,7 +410,7 @@ class Bitmap(object):
 
         return x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4
 
-    def load(self, filename, translate, scale):
+    def load(self, filename, translate, scale,zbuffer_flag =False):
         """
         Based on example of Graphics Course
         Loads an obj file in the screen
@@ -394,14 +420,13 @@ class Bitmap(object):
           translate: (translateX, translateY) how much the model will be translated during render
           scale: (scaleX, scaleY) how much the model should be scaled
         """
+        self.zbuffer_flag = zbuffer_flag
         model = obj_loader(filename)
 
         light = [0, 0, 1]
 
         for face in model.vfaces:
             vcount = len(face)
-            print("---------")
-            print(vcount)
             if vcount == 3:
                 f1 = face[0][0] - 1
                 f2 = face[1][0] - 1
@@ -437,7 +462,6 @@ class Bitmap(object):
                     [x3, y3, z3],
                     [x4, y4, z4]
                 ]
-                print(vertices)
                 vp = self.cross(self.sub(vertices[0], vertices[1]), self.sub(vertices[1], vertices[2]))
                 normal = self.norm(vp)
                 intensity = self.dot(normal, light)
@@ -446,11 +470,11 @@ class Bitmap(object):
                     continue
 
                 A, B, C, D = vertices
-                print("gre")
-                print(grey)
-                print(intensity)
                 self.triangle(A, B, C, color(grey, grey, grey))
                 self.triangle(A, C, D, color(grey, grey, grey))
+
+        print("Zbuffer")
+        print(self.zbuffer)
 
     def barycentric(self, vec1, vec2, vec3, P):
         vect1 = [vec3[0] - vec1[0], vec2[0] - vec1[0], vec1[0] - P[0]]
@@ -505,7 +529,11 @@ class Bitmap(object):
                 if w < 0 or v < 0 or u < 0:  # 0 is actually a valid value! (it is on the edge)
                     continue
 
-                self.point(x, y, color)
+                z = vec1[2]*w + vec2[2] * v + vec3[2]*u
+                if z > self.zbuffer[x][y]:
+                    self.point(x, y, color)
+                    self.zbuffer[x][y] = z
+
 
     def bounding_box(self, *vertices):
         """
