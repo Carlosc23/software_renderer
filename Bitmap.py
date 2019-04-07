@@ -75,11 +75,12 @@ class Bitmap(object):
         max_z_value = max([max(r) for r in self.zbuffer])
         for x in range(self.height):
             for y in range(self.width):
-                color_zbuffer = int(self.zbuffer[x][y] * 255 / max_z_value)if self.zbuffer[x][y] > 0 else 0
+                color_zbuffer = int(self.zbuffer[x][y] * 255 / max_z_value) if self.zbuffer[x][y] > 0 else 0
                 try:
                     self.zbuffer_color[y][x] = color(color_zbuffer, color_zbuffer, color_zbuffer)
                 except:
                     pass
+
     def glViewPort(self, x, y, width, height):
         """
         Define the area of the image where the glVertex will draw
@@ -201,7 +202,6 @@ class Bitmap(object):
                 for y in range(self.width):
                     f.write(self.pixels[x][y])
         f.close()
-
 
     def point(self, x, y, color=color(255, 200, 200)):
         """
@@ -410,7 +410,7 @@ class Bitmap(object):
 
         return x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4
 
-    def load(self, filename, translate, scale,zbuffer_flag =False):
+    def load(self, filename, translate, scale, zbuffer_flag=False):
         """
         Based on example of Graphics Course
         Loads an obj file in the screen
@@ -495,7 +495,7 @@ class Bitmap(object):
           Input: 1 size 3 vector
           Output: Scalar with the length of the vector
         """
-        return (v0[0] ** 2 + v0[1] ** 2 + v0[2] ** 2) ** 0.5
+        return sum([(v0[i]**2) for i in range(3)]) **0.5
 
     def norm(self, V):
         vl = self.length(V)
@@ -511,29 +511,29 @@ class Bitmap(object):
         :param vec2:
         :return:
         """
-        x = vec1[1] * vec2[2] - vec1[2]*vec2[1]
-        y = vec1[2] * vec2[0] - vec1[0]*vec2[2]
-        z = vec1[0] * vec2[1] - vec1[1]*vec2[0]
+        x = vec1[1] * vec2[2] - vec1[2] * vec2[1]
+        y = vec1[2] * vec2[0] - vec1[0] * vec2[2]
+        z = vec1[0] * vec2[1] - vec1[1] * vec2[0]
 
         return [x, y, z]
 
-    def sub(self, vec1, vec2, color=None):
-        vec3 = [vec1[0] - vec2[0], vec1[1] - vec2[1], vec1[2] - vec2[2]]
-        return vec3
+    def sub(self, vec1, vec2):
+        return [(vec1[i]-vec2[i]) for i in range(3)]
 
     def triangle(self, vec1, vec2, vec3, color):
-        bbox_min, bbox_max = self.bounding_box(vec1, vec2,vec3)
-        for x in range(bbox_min[0], bbox_max[0] + 1):
-            for y in range(bbox_min[1], bbox_max[1] + 1):
+        bbox_min, bbox_max = self.bounding_box(vec1, vec2, vec3)
+        lim_loop1 = bbox_max[0] + 1
+        lim_loop2 = bbox_max[1] + 1
+        for x in range(bbox_min[0], lim_loop1 ):
+            for y in range(bbox_min[1], lim_loop2 ):
                 w, v, u = self.barycentric(vec1, vec2, vec3, [x, y])
                 if w < 0 or v < 0 or u < 0:  # 0 is actually a valid value! (it is on the edge)
                     continue
 
-                z = vec1[2]*w + vec2[2] * v + vec3[2]*u
+                z = vec1[2] * w + vec2[2] * v + vec3[2] * u
                 if z > self.zbuffer[x][y]:
                     self.point(x, y, color)
                     self.zbuffer[x][y] = z
-
 
     def bounding_box(self, *vertices):
         """
@@ -547,4 +547,4 @@ class Bitmap(object):
         return [vec1[0], vec2[0]], [vec1[-1], vec2[-1]]
 
     def dot(self, v1, v2):
-        return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]
+        return sum([(v1[i]*v2[i]) for i in range(3)])
