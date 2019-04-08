@@ -369,19 +369,10 @@ class Bitmap(object):
         :return: the coords transformated
         """
         x1, y1, z1, x2, y2, z2, x3, y3, z3 = coords
-        x1 = math.floor((x1 + translate[0]) * scale[0])
-        y1 = math.floor((y1 + translate[1]) * scale[1])
-        z1 = math.floor((z1 + translate[2]) * scale[2])
-
-        x2 = math.floor((x2 + translate[0]) * scale[0])
-        y2 = math.floor((y2 + translate[1]) * scale[1])
-        z2 = math.floor((z2 + translate[2]) * scale[2])
-
-        x3 = math.floor((x3 + translate[0]) * scale[0])
-        y3 = math.floor((y3 + translate[1]) * scale[1])
-        z3 = math.floor((z3 + translate[2]) * scale[2])
-
-        return x1, y1, z1, x2, y2, z2, x3, y3, z3
+        size_coords = int(len(coords)/3)
+        print(len(coords))
+        tu = tuple([(math.floor((coords[i] + translate[j]) * scale[j])) for j in range(size_coords) for i in range(3)])
+        return tu
 
     def transform_img2(self, coords, translate=(0, 0, 0), scale=(1, 1, 1)):
         """
@@ -392,6 +383,11 @@ class Bitmap(object):
         :return: the coords transformated
         """
         x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4 = coords
+        size_coords = int(len(coords) / 3)
+        print(len(coords))
+        tu = tuple([(i,j) for j in range(3) for i in range(size_coords)])
+        #tu = tuple([(math.floor((coords[j] + translate[i]) * scale[i])) for j in range(3) for i in range(size_coords)])
+        print(tu)
         x1 = math.floor((x1 + translate[0]) * scale[0])
         y1 = math.floor((y1 + translate[1]) * scale[1])
         z1 = math.floor((z1 + translate[2]) * scale[2])
@@ -410,7 +406,7 @@ class Bitmap(object):
 
         return x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4
 
-    def load(self, filename, translate, scale, zbuffer_flag=False):
+    def load(self, filename, translate, scale, zbuffer_flag=False,light=[0, 0, 1]):
         """
         Based on example of Graphics Course
         Loads an obj file in the screen
@@ -423,19 +419,13 @@ class Bitmap(object):
         self.zbuffer_flag = zbuffer_flag
         model = obj_loader(filename)
 
-        light = [0, 0, 1]
 
         for face in model.vfaces:
             vcount = len(face)
+            faces = [(face[i][0] - 1) for i in range(vcount)]
+            v = [(model.vertices[faces[i]]) for i in range(vcount)]
             if vcount == 3:
-                f1 = face[0][0] - 1
-                f2 = face[1][0] - 1
-                f3 = face[2][0] - 1
-
-                v1 = model.vertices[f1]
-                v2 = model.vertices[f2]
-                v3 = model.vertices[f3]
-                coords = v1[0], v1[1], v1[2], v2[0], v2[1], v2[2], v3[0], v3[1], v3[2]
+                coords = tuple([(v[j][i]) for j in range(vcount) for i in range(vcount)])
                 x1, y1, z1, x2, y2, z2, x3, y3, z3 = self.transform_img(coords, translate, scale)
                 vp = self.cross(self.sub([x2, y2, z2], [x1, y1, z1]), self.sub([x3, y3, z3], [x1, y1, z1]))
                 normal = self.norm(vp)
@@ -446,15 +436,7 @@ class Bitmap(object):
                     continue
                 self.triangle([x1, y1, z1], [x2, y2, z2], [x3, y3, z3], color(grey, grey, grey))
             else:
-                f1 = face[0][0] - 1
-                f2 = face[1][0] - 1
-                f3 = face[2][0] - 1
-                f4 = face[3][0] - 1
-                v1 = model.vertices[f1]
-                v2 = model.vertices[f2]
-                v3 = model.vertices[f3]
-                v4 = model.vertices[f4]
-                coords = v1[0], v1[1], v1[2], v2[0], v2[1], v2[2], v3[0], v3[1], v3[2], v4[0], v4[1], v4[2]
+                coords = tuple([(v[j][i]) for j in range(vcount) for i in range(vcount-1)])
                 x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4 = self.transform_img2(coords, translate, scale)
                 vertices = [
                     [x1, y1, z1],
@@ -470,8 +452,9 @@ class Bitmap(object):
                     continue
 
                 A, B, C, D = vertices
-                self.triangle(A, B, C, color(grey, grey, grey))
-                self.triangle(A, C, D, color(grey, grey, grey))
+                col = color(grey, grey, grey)
+                self.triangle(A, B, C, col)
+                self.triangle(A, C, D, col)
 
         print("Zbuffer")
         print(self.zbuffer)
