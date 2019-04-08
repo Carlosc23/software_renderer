@@ -7,7 +7,7 @@
 from SR1 import SoftwareRender
 
 
-x = SoftwareRender('out4.bmp')
+x = SoftwareRender('out.bmp')
 x.glCreateWindow(800, 600)
 x.glViewPort(0, 0, 800, 600)
 x.glClear()
