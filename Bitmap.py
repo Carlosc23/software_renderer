@@ -369,10 +369,20 @@ class Bitmap(object):
         :return: the coords transformated
         """
         x1, y1, z1, x2, y2, z2, x3, y3, z3 = coords
-        size_coords = int(len(coords)/3)
-        print(len(coords))
-        tu = tuple([(math.floor((coords[i] + translate[j]) * scale[j])) for j in range(size_coords) for i in range(3)])
-        return tu
+   
+        x1 = math.floor((x1 + translate[0]) * scale[0])
+        y1 = math.floor((y1 + translate[1]) * scale[1])
+        z1 = math.floor((z1 + translate[2]) * scale[2])
+
+        x2 = math.floor((x2 + translate[0]) * scale[0])
+        y2 = math.floor((y2 + translate[1]) * scale[1])
+        z2 = math.floor((z2 + translate[2]) * scale[2])
+
+        x3 = math.floor((x3 + translate[0]) * scale[0])
+        y3 = math.floor((y3 + translate[1]) * scale[1])
+        z3 = math.floor((z3 + translate[2]) * scale[2])
+
+        return x1, y1, z1, x2, y2, z2, x3, y3, z3
 
     def transform_img2(self, coords, translate=(0, 0, 0), scale=(1, 1, 1)):
         """
@@ -383,11 +393,6 @@ class Bitmap(object):
         :return: the coords transformated
         """
         x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4 = coords
-        size_coords = int(len(coords) / 3)
-        print(len(coords))
-        tu = tuple([(i,j) for j in range(3) for i in range(size_coords)])
-        #tu = tuple([(math.floor((coords[j] + translate[i]) * scale[i])) for j in range(3) for i in range(size_coords)])
-        print(tu)
         x1 = math.floor((x1 + translate[0]) * scale[0])
         y1 = math.floor((y1 + translate[1]) * scale[1])
         z1 = math.floor((z1 + translate[2]) * scale[2])
@@ -425,7 +430,7 @@ class Bitmap(object):
             faces = [(face[i][0] - 1) for i in range(vcount)]
             v = [(model.vertices[faces[i]]) for i in range(vcount)]
             if vcount == 3:
-                coords = tuple([(v[j][i]) for j in range(vcount) for i in range(vcount)])
+                coords = tuple([(v[i][j]) for i in range(vcount) for j in range(vcount)])
                 x1, y1, z1, x2, y2, z2, x3, y3, z3 = self.transform_img(coords, translate, scale)
                 vp = self.cross(self.sub([x2, y2, z2], [x1, y1, z1]), self.sub([x3, y3, z3], [x1, y1, z1]))
                 normal = self.norm(vp)
@@ -455,9 +460,6 @@ class Bitmap(object):
                 col = color(grey, grey, grey)
                 self.triangle(A, B, C, col)
                 self.triangle(A, C, D, col)
-
-        print("Zbuffer")
-        print(self.zbuffer)
 
     def barycentric(self, vec1, vec2, vec3, P):
         vect1 = [vec3[0] - vec1[0], vec2[0] - vec1[0], vec1[0] - P[0]]
