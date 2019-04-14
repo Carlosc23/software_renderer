@@ -184,7 +184,7 @@ class Bitmap(object):
         f.write(word(1))
         f.write(word(24))
         f.write(dword(0))
-        f.write(dword(0))
+        #f.write(dword(0))
         f.write(dword(self.width * self.height * 3))
         f.write(dword(0))
         f.write(dword(0))
@@ -203,7 +203,7 @@ class Bitmap(object):
                     f.write(self.pixels[x][y])
         f.close()
 
-    def point(self, x, y, color=color(255, 200, 200)):
+    def point(self, x, y, color=None):
         """
         function that fills a pixel of a color
         :param x: position of the pixel
@@ -467,8 +467,9 @@ class Bitmap(object):
                 else:
                     faces2 = [(face[i][1] - 1) for i in range(vcount)]
                     v2 = [(model.tvertices[faces2[i]]) for i in range(vcount)]
-                    self.triangle(A, B, C,color=None,texture= texture,texture_coords=v2,intensity = intensity)
-                    self.triangle(A, C, D,color=None,texture= texture,texture_coords=v2,intensity = intensity)
+                    print(v2)
+                    self.triangle(A, B, C,color=None,texture= texture,texture_coords=[v2[0],v2[1],v2[2]],intensity = intensity)
+                    self.triangle(A, C, D,color=None,texture= texture,texture_coords=[v2[0],v2[2],v2[3]],intensity = intensity)
 
     def barycentric(self, vec1, vec2, vec3, P):
         vect1 = [vec3[0] - vec1[0], vec2[0] - vec1[0], vec1[0] - P[0]]
@@ -514,8 +515,7 @@ class Bitmap(object):
     def sub(self, vec1, vec2):
         return [(vec1[i]-vec2[i]) for i in range(3)]
 
-    def triangle(self, vec1, vec2, vec3,texture=None,texture_coords=[], color=None,intensity=1):
-        print("triangle")
+    def triangle(self, vec1, vec2, vec3,texture=None,texture_coords=[], color=None,intensity=0):
         bbox_min, bbox_max = self.bounding_box(vec1, vec2, vec3)
         lim_loop1 = bbox_max[0] + 1
         lim_loop2 = bbox_max[1] + 1
@@ -537,11 +537,9 @@ class Bitmap(object):
                     continue
 
                 if x < len(self.zbuffer) and y < len(self.zbuffer[x]) and z > self.zbuffer[x][y]:
-
-                    #print("color: "+color)
+                    print(color)
                     self.point(x, y, color)
                     self.zbuffer[x][y] = z
-                #print("sali de triangle")
 
     def bounding_box(self, *vertices):
         """
