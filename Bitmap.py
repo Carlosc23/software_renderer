@@ -3,28 +3,12 @@
 # Inspired in the class render made in Graphics Course C3044
 import math
 import random
-import struct
 import sys
-
 from math import ceil
+from utils import *
+from math_op import *
+from obj_loader import Obj as obj_loader
 
-from obj_loader import Obj as obj_loader,Texture
-
-
-def char(c):
-    return struct.pack("=c", c.encode('ascii'))
-
-
-def word(w):
-    return struct.pack("=h", w)
-
-
-def dword(d):
-    return struct.pack("=l", d)
-
-
-def color(r, g, b):
-    return bytes([b, g, r])
 
 
 class Bitmap(object):
@@ -184,7 +168,7 @@ class Bitmap(object):
         f.write(word(1))
         f.write(word(24))
         f.write(dword(0))
-        #f.write(dword(0))
+        # f.write(dword(0))
         f.write(dword(self.width * self.height * 3))
         f.write(dword(0))
         f.write(dword(0))
@@ -369,7 +353,7 @@ class Bitmap(object):
         :return: the coords transformated
         """
         x1, y1, z1, x2, y2, z2, x3, y3, z3 = coords
-   
+
         x1 = math.floor((x1 + translate[0]) * scale[0])
         y1 = math.floor((y1 + translate[1]) * scale[1])
         z1 = math.floor((z1 + translate[2]) * scale[2])
@@ -411,7 +395,7 @@ class Bitmap(object):
 
         return x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4
 
-    def load(self, filename, translate, scale, zbuffer_flag=False,light=[1, 0, 0],texture=None):
+    def load(self, filename, translate, scale, zbuffer_flag=False, light=[1, 0, 0], texture=None):
         """
         Based on example of Graphics Course
         Loads an obj file in the screen
@@ -430,22 +414,24 @@ class Bitmap(object):
             if vcount == 3:
                 coords = tuple([(v[i][j]) for i in range(vcount) for j in range(vcount)])
                 x1, y1, z1, x2, y2, z2, x3, y3, z3 = self.transform_img(coords, translate, scale)
-                vp = self.cross(self.sub([x2, y2, z2], [x1, y1, z1]), self.sub([x3, y3, z3], [x1, y1, z1]))
-                normal = self.norm(vp)
-                intensity = self.dot(normal, light)
+                vp = cross(sub([x2, y2, z2], [x1, y1, z1]), sub([x3, y3, z3], [x1, y1, z1]))
+                normal = norm(vp)
+                intensity = dot(normal, light)
                 if not texture:
                     grey = round(255 * intensity)
                     if grey < 0:
                         continue
-                    self.triangle([x1, y1, z1], [x2, y2, z2], [x3, y3, z3],None,[],color(grey,grey,grey),1)
+                    self.triangle([x1, y1, z1], [x2, y2, z2], [x3, y3, z3], None, [], color(grey, grey, grey),
+                                  intensity)
 
                 else:
                     faces2 = [(face[i][1] - 1) for i in range(vcount)]
                     v2 = [(model.tvertices[faces2[i]]) for i in range(vcount)]
-                    self.triangle([x1, y1, z1], [x2, y2, z2], [x3, y3, z3],color=None,texture= texture,texture_coords=v2,intensity = intensity)
+                    self.triangle([x1, y1, z1], [x2, y2, z2], [x3, y3, z3], color=None, texture=texture,
+                                  texture_coords=v2, intensity=intensity)
 
             else:
-                coords = tuple([(v[j][i]) for j in range(vcount) for i in range(vcount-1)])
+                coords = tuple([(v[j][i]) for j in range(vcount) for i in range(vcount - 1)])
                 x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4 = self.transform_img2(coords, translate, scale)
                 vertices = [
                     [x1, y1, z1],
@@ -453,28 +439,29 @@ class Bitmap(object):
                     [x3, y3, z3],
                     [x4, y4, z4]
                 ]
-                vp = self.cross(self.sub(vertices[0], vertices[1]), self.sub(vertices[1], vertices[2]))
-                normal = self.norm(vp)
-                intensity = self.dot(normal, light)
+                vp = cross(sub(vertices[0], vertices[1]), sub(vertices[1], vertices[2]))
+                normal = norm(vp)
+                intensity = dot(normal, light)
                 grey = round(255 * intensity)
                 A, B, C, D = vertices
                 if not texture:
                     if grey < 0:
                         continue
                     col = color(grey, grey, grey)
-                    self.triangle(A, B, C, col)
-                    self.triangle(A, C, D, col)
+                    self.triangle(A, B, C, None, [], col, intensity)
+                    self.triangle(A, C, D, None, [], col, intensity)
                 else:
                     faces2 = [(face[i][1] - 1) for i in range(vcount)]
                     v2 = [(model.tvertices[faces2[i]]) for i in range(vcount)]
-                    print(v2)
-                    self.triangle(A, B, C,color=None,texture= texture,texture_coords=[v2[0],v2[1],v2[2]],intensity = intensity)
-                    self.triangle(A, C, D,color=None,texture= texture,texture_coords=[v2[0],v2[2],v2[3]],intensity = intensity)
+                    self.triangle(A, B, C, color=None, texture=texture, texture_coords=[v2[0], v2[1], v2[2]],
+                                  intensity=intensity)
+                    self.triangle(A, C, D, color=None, texture=texture, texture_coords=[v2[0], v2[2], v2[3]],
+                                  intensity=intensity)
 
     def barycentric(self, vec1, vec2, vec3, P):
         vect1 = [vec3[0] - vec1[0], vec2[0] - vec1[0], vec1[0] - P[0]]
         vect2 = [vec3[1] - vec1[1], vec2[1] - vec1[1], vec1[1] - P[1]]
-        u = self.cross(vect1, vect2)
+        u = cross(vect1, vect2)
         if abs(u[2]) < 1:
             return [-1, -1, -1]
 
@@ -485,52 +472,23 @@ class Bitmap(object):
                 u[0] / u[2]
             ]
 
-    def length(self, v0):
-        """
-          Input: 1 size 3 vector
-          Output: Scalar with the length of the vector
-        """
-        return sum([(v0[i]**2) for i in range(3)]) **0.5
 
-    def norm(self, V):
-        vl = self.length(V)
-
-        if not vl:
-            return [0, 0, 0]
-        return [(V[i] / vl) for i in range(3)]
-
-    def cross(self, vec1, vec2):
-        """
-        Simple function that is a vectorial product of 2 vectors
-        :param vec1:
-        :param vec2:
-        :return:
-        """
-        x = vec1[1] * vec2[2] - vec1[2] * vec2[1]
-        y = vec1[2] * vec2[0] - vec1[0] * vec2[2]
-        z = vec1[0] * vec2[1] - vec1[1] * vec2[0]
-
-        return [x, y, z]
-
-    def sub(self, vec1, vec2):
-        return [(vec1[i]-vec2[i]) for i in range(3)]
-
-    def triangle(self, vec1, vec2, vec3,texture=None,texture_coords=[], color=None,intensity=0):
+    def triangle(self, vec1, vec2, vec3, texture=None, texture_coords=[], color=None, intensity=0):
         bbox_min, bbox_max = self.bounding_box(vec1, vec2, vec3)
         lim_loop1 = bbox_max[0] + 1
         lim_loop2 = bbox_max[1] + 1
-        for x in range(bbox_min[0], lim_loop1 ):
-            for y in range(bbox_min[1], lim_loop2 ):
+        for x in range(bbox_min[0], lim_loop1):
+            for y in range(bbox_min[1], lim_loop2):
                 w, v, u = self.barycentric(vec1, vec2, vec3, [x, y])
                 if w < 0 or v < 0 or u < 0:  # 0 is actually a valid value! (it is on the edge)
                     continue
 
                 if texture:
-                    tA, tB, tC = texture_coords[0],texture_coords[1],texture_coords[2]
-                    tx = tA[0]*w + tB[0] * v + tC[0]*u
-                    ty = tA[1]*w + tB[1] * v + tC[1]*u
+                    tA, tB, tC = texture_coords[0], texture_coords[1], texture_coords[2]
+                    tx = tA[0] * w + tB[0] * v + tC[0] * u
+                    ty = tA[1] * w + tB[1] * v + tC[1] * u
 
-                    color = texture.get_color(tx,ty,intensity)
+                    color = texture.get_color(tx, ty, intensity)
                 z = vec1[2] * w + vec2[2] * v + vec3[2] * u
 
                 if x < 0 or y < 0:
@@ -551,6 +509,3 @@ class Bitmap(object):
         vec1.sort()
         vec2.sort()
         return [vec1[0], vec2[0]], [vec1[-1], vec2[-1]]
-
-    def dot(self, v1, v2):
-        return sum([(v1[i]*v2[i]) for i in range(3)])

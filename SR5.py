@@ -1,3 +1,11 @@
+# Carlos Calderon, 15219
+# SR4 Textures
+# Program that renders an obj of blender into simple lines filled with gray
+# And also use a texture in bmp to apply on the model
+# In this case is an simple mushroom of mario bros game
+
+
+
 from SR1 import SoftwareRender
 from obj_loader import Texture
 
