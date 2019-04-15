@@ -112,4 +112,4 @@ out
 gen
 
 # Ignore .bmp
-*.bmp
+#*.bmp
