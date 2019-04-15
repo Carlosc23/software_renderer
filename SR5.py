@@ -1,5 +1,5 @@
 # Carlos Calderon, 15219
-# SR4 Textures
+# SR5 Textures
 # Program that renders an obj of blender into simple lines filled with gray
 # And also use a texture in bmp to apply on the model
 # In this case is an simple mushroom of mario bros game
@@ -15,5 +15,6 @@ x.glViewPort(0, 0, 800, 600)
 x.glClear()
 # Render the mushroom with flat shading and texture
 t = Texture('./models/mushroom2.bmp')
-x.load('./models/mushroom.obj', (16, 9, 0), (25, 25, 1), False, [0, 0, 1], t)
+#x.load('./models/mushroom.obj', (16, 9, 0), (25, 25, 1), False, [0, 0, 1], t)
+x.load_img_texture('./models/mushroom.obj', (16, 9, 0), (25, 25, 1),t,[0, 0, 1])
 x.glFinish()

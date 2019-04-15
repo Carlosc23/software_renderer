@@ -1,3 +1,6 @@
+# Carlos Calderon,15219
+# Module utils, contain functions utils for write the render in a bmp
+
 import struct
 
 

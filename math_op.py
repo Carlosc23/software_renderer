@@ -1,3 +1,7 @@
+# Carlos Calderon,15219
+# Module with functions with matrix operations or linear algebra equations utils for render an obj
+
+
 def length(v0):
     """
       Input: 1 size 3 vector
@@ -6,12 +10,12 @@ def length(v0):
     return sum([(v0[i] ** 2) for i in range(3)]) ** 0.5
 
 
-def norm(V):
-    vl = length(V)
+def norm(v):
+    vl = length(v)
 
     if not vl:
         return [0, 0, 0]
-    return [(V[i] / vl) for i in range(3)]
+    return [(v[i] / vl) for i in range(3)]
 
 
 def cross(vec1, vec2):
@@ -34,3 +38,15 @@ def sub(vec1, vec2):
 
 def dot(v1, v2):
     return sum([(v1[i] * v2[i]) for i in range(3)])
+
+
+def calc_intensity(coord_1, coord_2, coord_3, light):
+    vp = cross(sub(coord_2, coord_1), sub(coord_3, coord_1))
+    normal = norm(vp)
+    intensity = dot(normal, light)
+    return intensity
+
+
+def calc_v(vertices, face, pos, vcount):
+    faces = [(face[i][pos] - 1) for i in range(vcount)]
+    return [(vertices[faces[i]]) for i in range(vcount)]

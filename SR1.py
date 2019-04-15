@@ -123,5 +123,8 @@ class SoftwareRender(object):
     def glLine(self, xo, yo, xf, yf):
         self.window.glLine(xo, yo, xf, yf)
 
-    def load(self, filename, translate, scale,zbuffer_flag,light=[0, 0, 1],texture=None):
-        self.window.load(filename, translate, scale,zbuffer_flag,light,texture)
+    def load(self, filename, translate, scale, zbuffer_flag, light=[0, 0, 1], texture=None):
+        self.window.load(filename, translate, scale, zbuffer_flag, light, texture)
+
+    def load_img_texture(self, filename, translate, scale, texture, light=[0, 0, 1]):
+        self.window.load_img_texture(filename, translate, scale, texture, light)
