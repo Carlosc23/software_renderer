@@ -394,7 +394,54 @@ class Bitmap(object):
 
         return x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4
 
+    def transform_img_sr6(self, coords, translate=(0, 0, 0), scale=(1, 1, 1),eye=[0,0,1], center=[0,0,0], up=[0,1,0]):
+        """
+        This method transform in size and in coords the original image
+        :param coords: The original coords of the vertex
+        :param translate: the params that translates the vertex
+        :param scale: the params that make bigger or smaller the vertex
+        :return: the coords transformated
+        """
+        x1, y1, z1, x2, y2, z2, x3, y3, z3 = coords
+
+        x1 = math.floor((x1 + translate[0]) * scale[0])
+        y1 = math.floor((y1 + translate[1]) * scale[1])
+        z1 = math.floor((z1 + translate[2]) * scale[2])
+
+        x2 = math.floor((x2 + translate[0]) * scale[0])
+        y2 = math.floor((y2 + translate[1]) * scale[1])
+        z2 = math.floor((z2 + translate[2]) * scale[2])
+
+        x3 = math.floor((x3 + translate[0]) * scale[0])
+        y3 = math.floor((y3 + translate[1]) * scale[1])
+        z3 = math.floor((z3 + translate[2]) * scale[2])
+
+        return x1, y1, z1, x2, y2, z2, x3, y3, z3
+
     def load_img_texture(self, filename, translate, scale, texture, light=[1, 0, 0]):
+        model = obj_loader(filename)
+        for face in model.vfaces:
+            vcount = len(face)
+            v = calc_v(model.vertices, face, 0, vcount)
+            if vcount == 3:
+                coords = tuple([(v[i][j]) for i in range(vcount) for j in range(vcount)])
+                x1, y1, z1, x2, y2, z2, x3, y3, z3 = self.transform_img(coords, translate, scale)
+                intensity = calc_intensity([x1, y1, z1], [x2, y2, z2], [x3, y3, z3], light)
+                v2 = calc_v(model.tvertices, face, 1, vcount)
+                self.triangle([x1, y1, z1], [x2, y2, z2], [x3, y3, z3], color=None, texture=texture,
+                              texture_coords=v2, intensity=intensity)
+            else:
+                coords = tuple([(v[j][i]) for j in range(vcount) for i in range(vcount - 1)])
+                x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4 = self.transform_img2(coords, translate, scale)
+                vertices = [[x1, y1, z1], [x2, y2, z2], [x3, y3, z3], [x4, y4, z4]]
+                intensity = calc_intensity(vertices[0], vertices[1], vertices[2], light)
+                a, b, c, d = vertices
+                v2 = calc_v(model.tvertices, face, 1, vcount)
+                self.triangle(a, b, c, color=None, texture=texture, texture_coords=[v2[0], v2[1], v2[2]],
+                              intensity=intensity)
+                self.triangle(a, c, d, color=None, texture=texture, texture_coords=[v2[0], v2[2], v2[3]],
+                              intensity=intensity)
+    def load_img_texture2(self, filename, translate, scale, texture, light=[1, 0, 0],eye=[0,0,1], center=[0,0,0], up=[0,1,0]):
         model = obj_loader(filename)
         for face in model.vfaces:
             vcount = len(face)

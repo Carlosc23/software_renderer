@@ -128,3 +128,7 @@ class SoftwareRender(object):
 
     def load_img_texture(self, filename, translate, scale, texture, light=[0, 0, 1]):
         self.window.load_img_texture(filename, translate, scale, texture, light)
+
+    def load_img_texture2(self, filename, translate, scale, texture, light=[0, 0, 1], eye=[0, 0, 1], center=[0, 0, 0],
+                          up=[0, 1, 0]):
+        self.window.load_img_texture2(filename, translate, scale, texture, light, eye, center, up)
