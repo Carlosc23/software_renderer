@@ -33,6 +33,10 @@ class Bitmap(object):
         self.vg = 200
         self.vb = 200
         self.zbuffer_flag = False
+        self.View = 0
+        self.projection = 0
+        self.model = 0
+        self.viewPort = 0
         self.glclear()
 
     def glclear(self):
@@ -402,17 +406,15 @@ class Bitmap(object):
                     matrizR[x][y] += matriz1[x][z] * matriz2[z][y]
         return matrizR
 
-    def loadProjectionMatriz(self, coeff):
-        global projection
-        projection = [
+    def loadProjectionMatriz(self, coef):
+        self.projection = [
             [1, 0, 0, 0],
             [0, 1, 0, 0],
             [0, 0, 1, 0],
-            [0, 0, coeff, 1]
+            [0, 0, coef, 1]
         ]
 
     def loadViewMatriz(self, x, y, z, center):
-        global View
         M = [
             [x[0], x[1], x[2], 0],
             [y[0], y[1], y[2], 0],
@@ -428,18 +430,16 @@ class Bitmap(object):
             [0, 0, 0, 1]
         ]
 
-        View = self.multiplicacion(O, M)
+        self.View = self.multiplicacion(O, M)
 
     def lookAt(self, eye=[0, 0, 1], center=[0, 0, 0], up=[0, 1, 0]):
         z = norm(sub(eye, center))
         x = norm(cross(up, z))
         y = norm(cross(z, x))
         self.loadViewMatriz(x, y, z, center)
-        algo = norm(sub(eye, center))
-        self.loadProjectionMatriz(-1 / length(algo))
+        self.loadProjectionMatriz(-1 / length(norm(sub(eye, center))))
 
     def loadModelMatriz(self, translate, scale, rotate):
-        global model
         translate_matrix = [
             [1, 0, 0, translate[0]],
             [0, 1, 0, translate[1]],
@@ -482,13 +482,11 @@ class Bitmap(object):
 
         res1 = self.multiplicacion(rotation_matrix_z, rotation_matrix_y)
         rotation_matrix = self.multiplicacion(res1, rotation_matrix_x)
-        # rotation_matrix = rotation_matrix_x @ rotation_matrix_y @ rotation_matrix_z     #solo se va poder rotar en un eje (pensar en blender)
         res2 = self.multiplicacion(rotation_matrix, translate_matrix)
-        model = self.multiplicacion(res2, scale_matrix)
+        self.model = self.multiplicacion(res2, scale_matrix)
 
     def loadViewportMatrix(self, x=0, y=0):
-        global Viewport
-        Viewport = [[self.vpWidth / 2, 0, 0, x + self.vpWidth / 2],
+        self.viewPort = [[self.vpWidth / 2, 0, 0, x + self.vpWidth / 2],
                     [0, self.vpHeight / 2, 0, y + self.vpHeight / 2],
                     [0, 0, 128, 128],
                     [0, 0, 0, 1]]
@@ -514,27 +512,27 @@ class Bitmap(object):
         self.loadModelMatriz(translate, scale, rotate)
         self.loadViewportMatrix()
 
-        prueba1 = self.multiplicacion(Viewport, projection)
-        prueba2 = self.multiplicacion(prueba1, View)
-        final = self.multiplicacion(prueba2, model)
+        prueba1 = self.multiplicacion(self.viewPort, self.projection)
+        prueba2 = self.multiplicacion(prueba1, self.View)
+        final = self.multiplicacion(prueba2, self.model)
         final2 = self.multiplicacion(final, aumented1)
 
         x1 = math.floor((final2[0][0] / final2[3][0]))
         y1 = math.floor((final2[1][0] / final2[3][0]))
         z1 = math.floor((final2[2][0] / final2[3][0]))
 
-        prueba1 = self.multiplicacion(Viewport, projection)
-        prueba2 = self.multiplicacion(prueba1, View)
-        final = self.multiplicacion(prueba2, model)
+        prueba1 = self.multiplicacion(self.viewPort, self.projection)
+        prueba2 = self.multiplicacion(prueba1, self.View)
+        final = self.multiplicacion(prueba2, self.model)
         final2 = self.multiplicacion(final, aumented2)
 
         x2 = math.floor((final2[0][0] / final2[3][0]))
         y2 = math.floor((final2[1][0] / final2[3][0]))
         z2 = math.floor((final2[2][0] / final2[3][0]))
 
-        prueba1 = self.multiplicacion(Viewport, projection)
-        prueba2 = self.multiplicacion(prueba1, View)
-        final = self.multiplicacion(prueba2, model)
+        prueba1 = self.multiplicacion(self.viewPort, self.projection)
+        prueba2 = self.multiplicacion(prueba1, self.View)
+        final = self.multiplicacion(prueba2, self.model)
         final2 = self.multiplicacion(final, aumented3)
 
         x3 = math.floor((final2[0][0] / final2[3][0]))
@@ -564,36 +562,36 @@ class Bitmap(object):
         self.loadModelMatriz(translate, scale, rotate)
         self.loadViewportMatrix()
 
-        prueba1 = self.multiplicacion(Viewport, projection)
-        prueba2 = self.multiplicacion(prueba1, View)
-        final = self.multiplicacion(prueba2, model)
+        prueba1 = self.multiplicacion(self.viewPort, self.projection)
+        prueba2 = self.multiplicacion(prueba1, self.View)
+        final = self.multiplicacion(prueba2, self.model)
         final2 = self.multiplicacion(final, aumented1)
 
         x1 = math.floor((final2[0][0] / final2[3][0]))
         y1 = math.floor((final2[1][0] / final2[3][0]))
         z1 = math.floor((final2[2][0] / final2[3][0]))
 
-        prueba1 = self.multiplicacion(Viewport, projection)
-        prueba2 = self.multiplicacion(prueba1, View)
-        final = self.multiplicacion(prueba2, model)
+        prueba1 = self.multiplicacion(self.viewPort, self.projection)
+        prueba2 = self.multiplicacion(prueba1, self.View)
+        final = self.multiplicacion(prueba2, self.model)
         final2 = self.multiplicacion(final, aumented2)
 
         x2 = math.floor((final2[0][0] / final2[3][0]))
         y2 = math.floor((final2[1][0] / final2[3][0]))
         z2 = math.floor((final2[2][0] / final2[3][0]))
 
-        prueba1 = self.multiplicacion(Viewport, projection)
-        prueba2 = self.multiplicacion(prueba1, View)
-        final = self.multiplicacion(prueba2, model)
+        prueba1 = self.multiplicacion(self.viewPort, self.projection)
+        prueba2 = self.multiplicacion(prueba1, self.View)
+        final = self.multiplicacion(prueba2, self.model)
         final2 = self.multiplicacion(final, aumented3)
 
         x3 = math.floor((final2[0][0] / final2[3][0]))
         y3 = math.floor((final2[1][0] / final2[3][0]))
         z3 = math.floor((final2[2][0] / final2[3][0]))
 
-        prueba1 = self.multiplicacion(Viewport, projection)
-        prueba2 = self.multiplicacion(prueba1, View)
-        final = self.multiplicacion(prueba2, model)
+        prueba1 = self.multiplicacion(self.viewPort, self.projection)
+        prueba2 = self.multiplicacion(prueba1, self.View)
+        final = self.multiplicacion(prueba2, self.model)
         final2 = self.multiplicacion(final, aumented4)
 
         x4 = math.floor((final2[0][0] / final2[3][0]))
