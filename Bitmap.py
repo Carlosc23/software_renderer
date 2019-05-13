@@ -394,7 +394,108 @@ class Bitmap(object):
 
         return x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4
 
-    def transform_img_sr6(self, coords, translate=(0, 0, 0), scale=(1, 1, 1),eye=[0,0,1], center=[0,0,0], up=[0,1,0]):
+    def multiplicacion(self, matriz1, matriz2):
+        matrizR = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
+        for x in range(0, 4):
+            for y in range(0, 4):
+                for z in range(0, 4):
+                    matrizR[x][y] += matriz1[x][z] * matriz2[z][y]
+        return matrizR
+
+    def loadProjectionMatriz(self, coeff):
+        global projection
+        projection = [
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 1, 0],
+            [0, 0, coeff, 1]
+        ]
+
+    def loadViewMatriz(self, x, y, z, center):
+        global View
+        M = [
+            [x[0], x[1], x[2], 0],
+            [y[0], y[1], y[2], 0],
+            [z[0], z[1], z[2], 0],
+            [0, 0, 0, 1]
+
+        ]
+
+        O = [
+            [1, 0, 0, -center[0]],
+            [0, 1, 0, -center[1]],
+            [0, 0, 1, -center[2]],
+            [0, 0, 0, 1]
+        ]
+
+        View = self.multiplicacion(O, M)
+
+    def lookAt(self, eye=[0, 0, 1], center=[0, 0, 0], up=[0, 1, 0]):
+        z = norm(sub(eye, center))
+        x = norm(cross(up, z))
+        y = norm(cross(z, x))
+        self.loadViewMatriz(x, y, z, center)
+        algo = norm(sub(eye, center))
+        self.loadProjectionMatriz(-1 / length(algo))
+
+    def loadModelMatriz(self, translate, scale, rotate):
+        global model
+        translate_matrix = [
+            [1, 0, 0, translate[0]],
+            [0, 1, 0, translate[1]],
+            [0, 0, 1, translate[2]],
+            [0, 0, 0, 1],
+        ]
+
+        scale_matrix = [
+            [scale[0], 0, 0, 0],
+            [0, scale[1], 0, 0],
+            [0, 0, scale[2], 0],
+            [0, 0, 0, 1]
+
+        ]
+
+        a = rotate[0]
+        rotation_matrix_x = [
+            [1, 0, 0, 0],
+            [0, math.cos(a), -(math.sin(a)), 0],
+            [0, math.sin(a), math.cos(a), 0],
+            [0, 0, 0, 1]
+        ]
+
+        b = rotate[1]
+        rotation_matrix_y = [
+            [math.cos(b), 0, math.sin(b), 0],
+            [0, 1, 0, 0],
+            [-(math.sin(b)), 0, math.cos(b), 0],
+            [0, 0, 0, 1]
+        ]
+
+        c = rotate[2]
+
+        rotation_matrix_z = [
+            [math.cos(c), -(math.sin(c)), 0, 0],
+            [0, 1, 0, 0],
+            [math.sin(c), 0, math.cos(c), 0],
+            [0, 0, 0, 1]
+        ]
+
+        res1 = self.multiplicacion(rotation_matrix_z, rotation_matrix_y)
+        rotation_matrix = self.multiplicacion(res1, rotation_matrix_x)
+        # rotation_matrix = rotation_matrix_x @ rotation_matrix_y @ rotation_matrix_z     #solo se va poder rotar en un eje (pensar en blender)
+        res2 = self.multiplicacion(rotation_matrix, translate_matrix)
+        model = self.multiplicacion(res2, scale_matrix)
+
+    def loadViewportMatrix(self, x=0, y=0):
+        global Viewport
+        Viewport = [[self.vpWidth / 2, 0, 0, x + self.vpWidth / 2],
+                    [0, self.vpHeight / 2, 0, y + self.vpHeight / 2],
+                    [0, 0, 128, 128],
+                    [0, 0, 0, 1]]
+
+    def transform_img_sr6(self, coords, translate=(0, 0, 0), scale=(1, 1, 1), rotate=(0, 0, 0), eye=[0, 0, 1],
+                          center=[0, 0, 0],
+                          up=[0, 1, 0]):
         """
         This method transform in size and in coords the original image
         :param coords: The original coords of the vertex
@@ -404,19 +505,102 @@ class Bitmap(object):
         """
         x1, y1, z1, x2, y2, z2, x3, y3, z3 = coords
 
-        x1 = math.floor((x1 + translate[0]) * scale[0])
-        y1 = math.floor((y1 + translate[1]) * scale[1])
-        z1 = math.floor((z1 + translate[2]) * scale[2])
+        aumented1 = [[x1, 0, 0, 0], [y1, 0, 0, 0], [z1, 0, 0, 0], [1, 0, 0, 0]]
+        aumented2 = [[x2, 0, 0, 0], [y2, 0, 0, 0], [z2, 0, 0, 0], [1, 0, 0, 0]]
+        aumented3 = [[x3, 0, 0, 0], [y3, 0, 0, 0], [z3, 0, 0, 0], [1, 0, 0, 0]]
 
-        x2 = math.floor((x2 + translate[0]) * scale[0])
-        y2 = math.floor((y2 + translate[1]) * scale[1])
-        z2 = math.floor((z2 + translate[2]) * scale[2])
+        self.lookAt(eye, center, up)
 
-        x3 = math.floor((x3 + translate[0]) * scale[0])
-        y3 = math.floor((y3 + translate[1]) * scale[1])
-        z3 = math.floor((z3 + translate[2]) * scale[2])
+        self.loadModelMatriz(translate, scale, rotate)
+        self.loadViewportMatrix()
+
+        prueba1 = self.multiplicacion(Viewport, projection)
+        prueba2 = self.multiplicacion(prueba1, View)
+        final = self.multiplicacion(prueba2, model)
+        final2 = self.multiplicacion(final, aumented1)
+
+        x1 = math.floor((final2[0][0] / final2[3][0]))
+        y1 = math.floor((final2[1][0] / final2[3][0]))
+        z1 = math.floor((final2[2][0] / final2[3][0]))
+
+        prueba1 = self.multiplicacion(Viewport, projection)
+        prueba2 = self.multiplicacion(prueba1, View)
+        final = self.multiplicacion(prueba2, model)
+        final2 = self.multiplicacion(final, aumented2)
+
+        x2 = math.floor((final2[0][0] / final2[3][0]))
+        y2 = math.floor((final2[1][0] / final2[3][0]))
+        z2 = math.floor((final2[2][0] / final2[3][0]))
+
+        prueba1 = self.multiplicacion(Viewport, projection)
+        prueba2 = self.multiplicacion(prueba1, View)
+        final = self.multiplicacion(prueba2, model)
+        final2 = self.multiplicacion(final, aumented3)
+
+        x3 = math.floor((final2[0][0] / final2[3][0]))
+        y3 = math.floor((final2[1][0] / final2[3][0]))
+        z3 = math.floor((final2[2][0] / final2[3][0]))
 
         return x1, y1, z1, x2, y2, z2, x3, y3, z3
+
+    def transform_img_sr6_2(self, coords, translate=(0, 0, 0), scale=(1, 1, 1), rotate=(0, 0, 0), eye=[0, 0, 1],
+                            center=[0, 0, 0],
+                            up=[0, 1, 0]):
+        """
+        This method transform in size and in coords the original image
+        :param coords: The original coords of the vertex
+        :param translate: the params that translates the vertex
+        :param scale: the params that make bigger or smaller the vertex
+        :return: the coords transformated
+        """
+        x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4 = coords
+
+        aumented1 = [[x1, 0, 0, 0], [y1, 0, 0, 0], [z1, 0, 0, 0], [1, 0, 0, 0]]
+        aumented2 = [[x2, 0, 0, 0], [y2, 0, 0, 0], [z2, 0, 0, 0], [1, 0, 0, 0]]
+        aumented3 = [[x3, 0, 0, 0], [y3, 0, 0, 0], [z3, 0, 0, 0], [1, 0, 0, 0]]
+        aumented4 = [[x4, 0, 0, 0], [y4, 0, 0, 0], [z4, 0, 0, 0], [1, 0, 0, 0]]
+
+        self.lookAt(eye, center, up)
+        self.loadModelMatriz(translate, scale, rotate)
+        self.loadViewportMatrix()
+
+        prueba1 = self.multiplicacion(Viewport, projection)
+        prueba2 = self.multiplicacion(prueba1, View)
+        final = self.multiplicacion(prueba2, model)
+        final2 = self.multiplicacion(final, aumented1)
+
+        x1 = math.floor((final2[0][0] / final2[3][0]))
+        y1 = math.floor((final2[1][0] / final2[3][0]))
+        z1 = math.floor((final2[2][0] / final2[3][0]))
+
+        prueba1 = self.multiplicacion(Viewport, projection)
+        prueba2 = self.multiplicacion(prueba1, View)
+        final = self.multiplicacion(prueba2, model)
+        final2 = self.multiplicacion(final, aumented2)
+
+        x2 = math.floor((final2[0][0] / final2[3][0]))
+        y2 = math.floor((final2[1][0] / final2[3][0]))
+        z2 = math.floor((final2[2][0] / final2[3][0]))
+
+        prueba1 = self.multiplicacion(Viewport, projection)
+        prueba2 = self.multiplicacion(prueba1, View)
+        final = self.multiplicacion(prueba2, model)
+        final2 = self.multiplicacion(final, aumented3)
+
+        x3 = math.floor((final2[0][0] / final2[3][0]))
+        y3 = math.floor((final2[1][0] / final2[3][0]))
+        z3 = math.floor((final2[2][0] / final2[3][0]))
+
+        prueba1 = self.multiplicacion(Viewport, projection)
+        prueba2 = self.multiplicacion(prueba1, View)
+        final = self.multiplicacion(prueba2, model)
+        final2 = self.multiplicacion(final, aumented4)
+
+        x4 = math.floor((final2[0][0] / final2[3][0]))
+        y4 = math.floor((final2[1][0] / final2[3][0]))
+        z4 = math.floor((final2[2][0] / final2[3][0]))
+
+        return x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4
 
     def load_img_texture(self, filename, translate, scale, texture, light=[1, 0, 0]):
         model = obj_loader(filename)
@@ -441,21 +625,26 @@ class Bitmap(object):
                               intensity=intensity)
                 self.triangle(a, c, d, color=None, texture=texture, texture_coords=[v2[0], v2[2], v2[3]],
                               intensity=intensity)
-    def load_img_texture2(self, filename, translate, scale, texture, light=[1, 0, 0],eye=[0,0,1], center=[0,0,0], up=[0,1,0]):
+
+    def load_img_texture2(self, filename, translate, scale, rotate, texture, light=[1, 0, 0], eye=[0, 0, 1],
+                          center=[0, 0, 0],
+                          up=[0, 1, 0]):
         model = obj_loader(filename)
         for face in model.vfaces:
             vcount = len(face)
             v = calc_v(model.vertices, face, 0, vcount)
             if vcount == 3:
                 coords = tuple([(v[i][j]) for i in range(vcount) for j in range(vcount)])
-                x1, y1, z1, x2, y2, z2, x3, y3, z3 = self.transform_img(coords, translate, scale)
+                x1, y1, z1, x2, y2, z2, x3, y3, z3 = self.transform_img_sr6(coords, translate, scale, rotate, eye,
+                                                                            center, up)
                 intensity = calc_intensity([x1, y1, z1], [x2, y2, z2], [x3, y3, z3], light)
                 v2 = calc_v(model.tvertices, face, 1, vcount)
                 self.triangle([x1, y1, z1], [x2, y2, z2], [x3, y3, z3], color=None, texture=texture,
                               texture_coords=v2, intensity=intensity)
             else:
                 coords = tuple([(v[j][i]) for j in range(vcount) for i in range(vcount - 1)])
-                x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4 = self.transform_img2(coords, translate, scale)
+                x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4 = self.transform_img_sr6_2(coords, translate, scale,
+                                                                                          rotate, eye, center, up)
                 vertices = [[x1, y1, z1], [x2, y2, z2], [x3, y3, z3], [x4, y4, z4]]
                 intensity = calc_intensity(vertices[0], vertices[1], vertices[2], light)
                 a, b, c, d = vertices
@@ -464,6 +653,47 @@ class Bitmap(object):
                               intensity=intensity)
                 self.triangle(a, c, d, color=None, texture=texture, texture_coords=[v2[0], v2[2], v2[3]],
                               intensity=intensity)
+
+    def load2(self, filename, translate, scale, rotate, light=[1, 0, 0], eye=[0, 0, 1], center=[0, 0, 0],
+              up=[0, 1, 0]):
+        """
+        Based on example of Graphics Course
+        Loads an obj file in the screen
+        wireframe only
+        Input:
+          filename: the full path of the obj file
+          translate: (translateX, translateY) how much the model will be translated during render
+          scale: (scaleX, scaleY) how much the model should be scaled
+        """
+        light = norm(light)
+        model = obj_loader(filename)
+        for face in model.vfaces:
+            vcount = len(face)
+            v = calc_v(model.vertices, face, 0, vcount)
+            if vcount == 3:
+                coords = tuple([(v[i][j]) for i in range(vcount) for j in range(vcount)])
+                x1, y1, z1, x2, y2, z2, x3, y3, z3 = self.transform_img_sr6(coords, translate, scale, rotate, eye,
+                                                                            center, up)
+                intensity = calc_intensity([x1, y1, z1], [x2, y2, z2], [x3, y3, z3], light)
+                grey = round(255 * intensity)
+                if grey < 0:
+                    continue
+                self.triangle([x1, y1, z1], [x2, y2, z2], [x3, y3, z3], None, [], color(grey, grey, grey),
+                              intensity)
+            elif vcount == 4:
+                coords = tuple([(v[j][i]) for j in range(vcount) for i in range(vcount - 1)])
+                x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4 = self.transform_img_sr6_2(coords, translate, scale,
+                                                                                          rotate, eye, center, up)
+                vertices = [[x1, y1, z1], [x2, y2, z2], [x3, y3, z3], [x4, y4, z4]]
+                intensity = calc_intensity(vertices[0], vertices[1], vertices[2], light)
+                grey = round(255 * intensity)
+                A, B, C, D = vertices
+                if grey < 0:
+                    continue
+                print(grey)
+                col = color(grey, grey, grey)
+                self.triangle(A, B, C, None, [], col, intensity)
+                self.triangle(A, C, D, None, [], col, intensity)
 
     def load(self, filename, translate, scale, zbuffer_flag=False, light=[1, 0, 0]):
         """
@@ -489,7 +719,8 @@ class Bitmap(object):
                     continue
                 self.triangle([x1, y1, z1], [x2, y2, z2], [x3, y3, z3], None, [], color(grey, grey, grey),
                               intensity)
-            else:
+            elif vcount == 4:
+                print(vcount)
                 coords = tuple([(v[j][i]) for j in range(vcount) for i in range(vcount - 1)])
                 x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4 = self.transform_img2(coords, translate, scale)
                 vertices = [[x1, y1, z1], [x2, y2, z2], [x3, y3, z3], [x4, y4, z4]]
@@ -523,7 +754,7 @@ class Bitmap(object):
         for x in range(bbox_min[0], lim_loop1):
             for y in range(bbox_min[1], lim_loop2):
                 w, v, u = self.barycentric(vec1, vec2, vec3, [x, y])
-                if w < 0 or v < 0 or u < 0: 
+                if w < 0 or v < 0 or u < 0:
                     continue
                 if texture:
                     tA, tB, tC = texture_coords[0], texture_coords[1], texture_coords[2]
