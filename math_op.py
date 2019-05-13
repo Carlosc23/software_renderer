@@ -40,6 +40,15 @@ def dot(v1, v2):
     return sum([(v1[i] * v2[i]) for i in range(3)])
 
 
+def mult(matrix1, matrix2):
+    matrix_r = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
+    for x in range(0, 4):
+        for y in range(0, 4):
+            for z in range(0, 4):
+                matrix_r[x][y] += matrix1[x][z] * matrix2[z][y]
+    return matrix_r
+
+
 def calc_intensity(coord_1, coord_2, coord_3, light):
     vp = cross(sub(coord_2, coord_1), sub(coord_3, coord_1))
     normal = norm(vp)
