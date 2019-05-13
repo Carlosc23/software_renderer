@@ -398,8 +398,6 @@ class Bitmap(object):
 
         return x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4
 
-
-
     def loadProjectionMatriz(self, coef):
         self.projection = [
             [1, 0, 0, 0],
@@ -481,15 +479,27 @@ class Bitmap(object):
 
     def loadViewportMatrix(self, x=0, y=0):
         self.viewPort = [[self.vpWidth / 2, 0, 0, x + self.vpWidth / 2],
-                    [0, self.vpHeight / 2, 0, y + self.vpHeight / 2],
-                    [0, 0, 128, 128],
-                    [0, 0, 0, 1]]
+                         [0, self.vpHeight / 2, 0, y + self.vpHeight / 2],
+                         [0, 0, 128, 128],
+                         [0, 0, 0, 1]]
+
+    def coords_op(self, aumented):
+        res_mul = mult(mult(self.viewPort, self.projection), self.View)
+        res_mul2 = mult(res_mul, self.model)
+        res_aumented = mult(res_mul2, aumented)
+        x = math.floor((res_aumented[0][0] / res_aumented[3][0]))
+        y = math.floor((res_aumented[1][0] / res_aumented[3][0]))
+        z = math.floor((res_aumented[2][0] / res_aumented[3][0]))
+        return x, y, z
 
     def transform_img_sr6(self, coords, translate=(0, 0, 0), scale=(1, 1, 1), rotate=(0, 0, 0), eye=[0, 0, 1],
-                          center=[0, 0, 0],
-                          up=[0, 1, 0]):
+                          center=[0, 0, 0], up=[0, 1, 0]):
         """
         This method transform in size and in coords the original image
+        :param up:
+        :type center: object
+        :param rotate:
+        :param eye:
         :param coords: The original coords of the vertex
         :param translate: the params that translates the vertex
         :param scale: the params that make bigger or smaller the vertex
@@ -506,40 +516,20 @@ class Bitmap(object):
         self.loadModelMatriz(translate, scale, rotate)
         self.loadViewportMatrix()
 
-        prueba1 = mult(self.viewPort, self.projection)
-        prueba2 = mult(prueba1, self.View)
-        final = mult(prueba2, self.model)
-        final2 = mult(final, aumented1)
-
-        x1 = math.floor((final2[0][0] / final2[3][0]))
-        y1 = math.floor((final2[1][0] / final2[3][0]))
-        z1 = math.floor((final2[2][0] / final2[3][0]))
-
-        prueba1 = mult(self.viewPort, self.projection)
-        prueba2 = mult(prueba1, self.View)
-        final = mult(prueba2, self.model)
-        final2 = mult(final, aumented2)
-
-        x2 = math.floor((final2[0][0] / final2[3][0]))
-        y2 = math.floor((final2[1][0] / final2[3][0]))
-        z2 = math.floor((final2[2][0] / final2[3][0]))
-
-        prueba1 = mult(self.viewPort, self.projection)
-        prueba2 = mult(prueba1, self.View)
-        final = mult(prueba2, self.model)
-        final2 = mult(final, aumented3)
-
-        x3 = math.floor((final2[0][0] / final2[3][0]))
-        y3 = math.floor((final2[1][0] / final2[3][0]))
-        z3 = math.floor((final2[2][0] / final2[3][0]))
+        x1, y1, z1 = self.coords_op(aumented1)
+        x2, y2, z2 = self.coords_op(aumented2)
+        x3, y3, z3 = self.coords_op(aumented3)
 
         return x1, y1, z1, x2, y2, z2, x3, y3, z3
 
     def transform_img_sr6_2(self, coords, translate=(0, 0, 0), scale=(1, 1, 1), rotate=(0, 0, 0), eye=[0, 0, 1],
-                            center=[0, 0, 0],
-                            up=[0, 1, 0]):
+                            center=[0, 0, 0], up=[0, 1, 0]):
         """
         This method transform in size and in coords the original image
+        :param up:
+        :param center:
+        :param eye:
+        :param rotate:
         :param coords: The original coords of the vertex
         :param translate: the params that translates the vertex
         :param scale: the params that make bigger or smaller the vertex
@@ -556,41 +546,10 @@ class Bitmap(object):
         self.loadModelMatriz(translate, scale, rotate)
         self.loadViewportMatrix()
 
-        prueba1 = mult(self.viewPort, self.projection)
-        prueba2 = mult(prueba1, self.View)
-        final = mult(prueba2, self.model)
-        final2 = mult(final, aumented1)
-
-        x1 = math.floor((final2[0][0] / final2[3][0]))
-        y1 = math.floor((final2[1][0] / final2[3][0]))
-        z1 = math.floor((final2[2][0] / final2[3][0]))
-
-        prueba1 = mult(self.viewPort, self.projection)
-        prueba2 = mult(prueba1, self.View)
-        final = mult(prueba2, self.model)
-        final2 = mult(final, aumented2)
-
-        x2 = math.floor((final2[0][0] / final2[3][0]))
-        y2 = math.floor((final2[1][0] / final2[3][0]))
-        z2 = math.floor((final2[2][0] / final2[3][0]))
-
-        prueba1 = mult(self.viewPort, self.projection)
-        prueba2 = mult(prueba1, self.View)
-        final = mult(prueba2, self.model)
-        final2 = mult(final, aumented3)
-
-        x3 = math.floor((final2[0][0] / final2[3][0]))
-        y3 = math.floor((final2[1][0] / final2[3][0]))
-        z3 = math.floor((final2[2][0] / final2[3][0]))
-
-        prueba1 = mult(self.viewPort, self.projection)
-        prueba2 = mult(prueba1, self.View)
-        final = mult(prueba2, self.model)
-        final2 = mult(final, aumented4)
-
-        x4 = math.floor((final2[0][0] / final2[3][0]))
-        y4 = math.floor((final2[1][0] / final2[3][0]))
-        z4 = math.floor((final2[2][0] / final2[3][0]))
+        x1, y1, z1 = self.coords_op(aumented1)
+        x2, y2, z2 = self.coords_op(aumented2)
+        x3, y3, z3 = self.coords_op(aumented3)
+        x4, y4, z4 = self.coords_op(aumented4)
 
         return x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4
 

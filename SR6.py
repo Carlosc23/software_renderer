@@ -58,4 +58,7 @@ def dutch():
             [0.1, 0.1, 0])
     x.glFinish()
 
+medium()
+low()
 dutch()
+high()
