@@ -30,9 +30,15 @@ def high():
     x.glViewPort(0, 0, 800, 600)
     x.glClear()
     t = Texture('./models/mushroom2.bmp')
-    x.load2("./models/mushroom.obj", (0, 0, 0), (0.5,0.5,0.5), (0, 0, 0), [0, 0.75, 1.5], [0.1, 0.5, 1],[0, 0, 0],
+    x.load2("./models/mushroom.obj", (-0.05, -0.8, 0), (0.8,0.8,0.8), (0, 0.5, 0), [0, 0.75, 1.5], [0,1.7,1.5],[0, 0, 0],
             [0, 1, 0])
     x.glFinish()
 
-
-low()
+def base():
+    x = SoftwareRender('high.bmp')
+    x.glCreateWindow(800, 600)
+    x.glViewPort(0, 0, 800, 600)
+    x.glClear()
+    x.load2("./models/mushroom.obj", (0, 0, 0), (0.5, 0.5, 0.5), (0, 0, 0), [0, 0.75, 1.5], [0.1, 0.5, 1], [0, 0, 0],
+            [0, 1, 0])
+high()
