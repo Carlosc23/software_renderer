@@ -3,6 +3,7 @@
 # Inspired in the class render made in Graphics Course C3044
 import math
 import random
+from random import randint
 import sys
 from math import ceil
 from utils import *
@@ -38,7 +39,10 @@ class Bitmap(object):
         self.model = 0
         self.viewPort = 0
         self.glclear()
+        self.planet = True
 
+    def set_planet(self,flag):
+        self.planet = False
     def glclear(self):
         """
         Fill the the pixels object with a color
@@ -684,6 +688,47 @@ class Bitmap(object):
                 self.triangle(A, B, C, None, [], col, intensity)
                 self.triangle(A, C, D, None, [], col, intensity)
 
+    def load_shader(self, filename, translate, scale, zbuffer_flag=False, light=[1, 0, 0]):
+        """
+        Based on example of Graphics Course
+        Loads an obj file in the screen
+        wireframe only
+        Input:
+          filename: the full path of the obj file
+          translate: (translateX, translateY) how much the model will be translated during render
+          scale: (scaleX, scaleY) how much the model should be scaled
+        """
+        self.zbuffer_flag = zbuffer_flag
+        model = obj_loader(filename)
+        for face in model.vfaces:
+            vcount = len(face)
+            v = calc_v(model.vertices, face, 0, vcount)
+            if vcount == 3:
+                coords = tuple([(v[i][j]) for i in range(vcount) for j in range(vcount)])
+                x1, y1, z1, x2, y2, z2, x3, y3, z3 = self.transform_img(coords, translate, scale)
+                intensity = calc_intensity([x1, y1, z1], [x2, y2, z2], [x3, y3, z3], light)
+                grey = round(255 * intensity)
+                if grey < 0:
+                    continue
+                nA = model.normales[face[0][2] - 1]
+                nB = model.normales[face[1][2] - 1]
+                nC = model.normales[face[2][2] - 1]
+                self.triangleS([x1, y1, z1], [x2, y2, z2], [x3, y3, z3],nA, nB, nC, None, [], color(grey, grey, grey),
+                              intensity)
+            """elif vcount == 4:
+                print(vcount)
+                coords = tuple([(v[j][i]) for j in range(vcount) for i in range(vcount - 1)])
+                x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4 = self.transform_img2(coords, translate, scale)
+                vertices = [[x1, y1, z1], [x2, y2, z2], [x3, y3, z3], [x4, y4, z4]]
+                intensity = calc_intensity(vertices[0], vertices[1], vertices[2], light)
+                grey = round(255 * intensity)
+                A, B, C, D = vertices
+                if grey < 0:
+                    continue
+                col = color(grey, grey, grey)
+                self.triangle(A, B, C, None, [], col, intensity)
+                self.triangle(A, C, D, None, [], col, intensity)"""
+
     def barycentric(self, vec1, vec2, vec3, P):
         vect1 = [vec3[0] - vec1[0], vec2[0] - vec1[0], vec1[0] - P[0]]
         vect2 = [vec3[1] - vec1[1], vec2[1] - vec1[1], vec1[1] - P[1]]
@@ -721,6 +766,207 @@ class Bitmap(object):
                 if x < len(self.zbuffer) and y < len(self.zbuffer[x]) and z > self.zbuffer[x][y]:
                     self.point(x, y, color)
                     self.zbuffer[x][y] = z
+
+    def triangleS(self, vec1, vec2, vec3,nA, nB, nC, texture=None, texture_coords=[], color=None, intensity=0):
+        bbox_min, bbox_max = self.bounding_box(vec1, vec2, vec3)
+        lim_loop1 = bbox_max[0] + 1
+        lim_loop2 = bbox_max[1] + 1
+        for x in range(bbox_min[0], lim_loop1):
+            for y in range(bbox_min[1], lim_loop2):
+                w, v, u = self.barycentric(vec1, vec2, vec3, [x, y])
+                if w < 0 or v < 0 or u < 0:
+                    continue
+                if texture:
+                    tA, tB, tC = texture_coords[0], texture_coords[1], texture_coords[2]
+                    tx = tA[0] * w + tB[0] * v + tC[0] * u
+                    ty = tA[1] * w + tB[1] * v + tC[1] * u
+
+                    color = texture.get_color(tx, ty, intensity)
+                z = vec1[2] * w + vec2[2] * v + vec3[2] * u
+                if self.planet:
+                    color = self.glSetGouradShaderNoTexture((x, y, z), (w, v, u), (nA, nB, nC))
+                else:
+                    color = self.glSetGouradShaderNoTexture((x, y, z), (w, v, u), (nA, nB, nC))
+
+                if x < 0 or y < 0:
+                    continue
+
+                if x < len(self.zbuffer) and y < len(self.zbuffer[x]) and z > self.zbuffer[x][y]:
+                    self.point(x, y, color)
+                    self.zbuffer[x][y] = z
+
+    def glSetGouradShaderNoTexture(self,coords, bar,norms):
+        b1, b2, b3 = bar
+        x, y,z = coords
+        normalA, normalB, normalC = norms
+        normX = normalA[0] * b1 + normalB[0] * b2 + normalC[0] * b3
+        normY = normalA[1] * b1 + normalB[1] * b2 + normalC[1] * b3
+        normZ = normalA[2] * b1 + normalB[2] * b2 + normalC[2] * b3
+
+        vect = [normX, normY, normZ]
+        textureColor = color(255, 255, 255)
+        print("entre")
+        if (self.planet):
+            # colors
+            """
+            baseColor = color(175,57,7)
+            lighterColor = color(238, 135, 67)
+            darkerColor = color(179,92, 60)
+            purple_color = color(50, 15, 31)
+            top_color = color(142, 145, 145)
+            """
+            baseColor = color(175, 57, 7)
+            lighterColor = color(244, 145, 77)
+            darkerColor = color(215, 105, 54)
+            purple_color = color(90, 74, 74)
+            top_color = color(90, 74, 74)
+            textureColor = baseColor
+            otro = color(221, 165, 104)
+            otro2 = color(231, 122, 66)
+            otro3 = color(105,110,110)
+            if (bool(random.getrandbits(1))):
+                if (bool(random.getrandbits(1))):
+                    textureColor = lighterColor
+                else:
+                    textureColor = darkerColor
+            textureColor = lighterColor
+
+            # if ((randint(500, 680) < x < randint(600, 700)) and (randint(500, 600) < y < randint(600, 700))):
+            #    textureColor = purple_color
+
+            # if ((randint(800, 1000) < x < randint(1000, 1200)) and (randint(500, 600) < y < randint(700, 800))):
+            #    textureColor = purple_color
+
+            # if ((randint(600, 700) < x < randint(700, 900)) and (randint(300, 350) < y < randint(350, 400))):
+            #    textureColor = purple_color
+
+            # if ((randint(850, 900) < x < randint(950, 1000)) and (randint(780, 820) < y < randint(820, 900))):
+            #    textureColor = top_color
+
+            # if ((randint(1100, 1250) < x < randint(1250, 1450)) and (randint(380, 420) < y < randint(420, 600))):
+            #    textureColor = otro
+            if (randint(1250, 1350) < x < randint(1350, 1400) and randint(380, 480) < y < randint(480, 650)):
+                textureColor = otro
+            if (randint(1250, 1350) < x < randint(1350, 1400) and randint(380, 480) < y < randint(480, 650)):
+                textureColor = otro
+            if (randint(1250, 1350) < x < randint(1350, 1400) and randint(380, 480) < y < randint(480, 650)):
+                textureColor = otro
+            #---------------------------------------
+            if (randint(750, 1000) < x < randint(1000, 1150) and randint(520, 580) < y < randint(580, 600)):
+                textureColor = otro
+            if (randint(750, 1000) < x < randint(1000, 1150) and randint(520, 580) < y < randint(580, 600)):
+                textureColor = otro
+            if (randint(750, 1000) < x < randint(1000, 1150) and randint(520, 580) < y < randint(580, 600)):
+                textureColor = otro
+            if (randint(750, 1000) < x < randint(1000, 1150) and randint(520, 580) < y < randint(580, 600)):
+                textureColor = otro
+            if (randint(750, 1000) < x < randint(1000, 1150) and randint(520, 580) < y < randint(580, 600)):
+                textureColor = otro
+            if (randint(750, 1000) < x < randint(1000, 1150) and randint(520, 580) < y < randint(580, 600)):
+                textureColor = otro
+            #----------------------------------
+            if (randint(900, 1000) < x < randint(1000, 1150) and randint(180, 220) < y < randint(220, 250)):
+                textureColor = otro
+            if (randint(900, 1000) < x < randint(1000, 1150) and randint(180, 220) < y < randint(220, 250)):
+                textureColor = otro
+            if (randint(900, 1000) < x < randint(1000, 1150) and randint(180, 220) < y < randint(220, 250)):
+                textureColor = otro
+            if (randint(900, 1000) < x < randint(1000, 1150) and randint(180, 220) < y < randint(220, 250)):
+                textureColor = otro
+            if (randint(900, 1000) < x < randint(1000, 1150) and randint(180, 220) < y < randint(220, 250)):
+                textureColor = otro
+            if (randint(900, 1000) < x < randint(1000, 1150) and randint(180, 220) < y < randint(220, 250)):
+                textureColor = otro
+            #----------------------------
+            if (randint(600, 800) < x < randint(800, 1000) and randint(600, 850) < y < randint(850, 950)):
+                textureColor = otro2
+            if (randint(600, 800) < x < randint(800, 1000) and randint(600, 850) < y < randint(850, 950)):
+                textureColor = otro2
+            if (randint(600, 800) < x < randint(800, 1000) and randint(600, 850) < y < randint(850, 950)):
+                textureColor = otro2
+            if (randint(600, 800) < x < randint(800, 1000) and randint(600, 850) < y < randint(850, 950)):
+                textureColor = otro2
+            if (randint(600, 800) < x < randint(800, 1000) and randint(600, 850) < y < randint(850, 950)):
+                textureColor = otro2
+            if (randint(600, 800) < x < randint(800, 1000) and randint(600, 850) < y < randint(850, 950)):
+                textureColor = otro2
+            if (randint(600, 800) < x < randint(800, 1000) and randint(600, 850) < y < randint(850, 950)):
+                textureColor = otro2
+            if (randint(600, 800) < x < randint(800, 1000) and randint(600, 850) < y < randint(850, 950)):
+                textureColor = otro2
+            #-------------------
+            if (randint(660, 800) < x < randint(800, 860) and randint(600, 620) < y < randint(620, 650)):
+                textureColor = otro3
+            if (randint(660, 800) < x < randint(800, 860) and randint(600, 620) < y < randint(620, 650)):
+                textureColor = otro3
+            if (randint(660, 800) < x < randint(800, 860) and randint(600, 620) < y < randint(620, 650)):
+                textureColor = otro3
+            if (randint(660, 800) < x < randint(800, 860) and randint(600, 620) < y < randint(620, 650)):
+                textureColor = otro3
+            #------------------
+            if (randint(450, 600) < x < randint(600, 700) and randint(300, 350) < y < randint(350, 400)):
+                textureColor = otro3
+            if (randint(450, 600) < x < randint(600, 700) and randint(300, 350) < y < randint(350, 400)):
+                textureColor = otro3
+            if (randint(450, 600) < x < randint(600, 700) and randint(300, 350) < y < randint(350, 400)):
+                textureColor = otro3
+            if (randint(450, 600) < x < randint(600, 700) and randint(300, 350) < y < randint(350, 400)):
+                textureColor = otro3
+            if (randint(450, 600) < x < randint(600, 700) and randint(300, 350) < y < randint(350, 400)):
+                textureColor = otro3
+            #--------------------
+            if (randint(680, 750) < x < randint(750, 800) and randint(280, 320) < y < randint(320, 350)):
+                textureColor = otro3
+            if (randint(680, 750) < x < randint(750, 800) and randint(280, 320) < y < randint(320, 350)):
+                textureColor = otro3
+            if (randint(680, 750) < x < randint(750, 800) and randint(280, 320) < y < randint(320, 350)):
+                textureColor = otro3
+            if (randint(680, 750) < x < randint(750, 800) and randint(280, 320) < y < randint(320, 350)):
+                textureColor = otro3
+            if (randint(680, 750) < x < randint(750, 800) and randint(280, 320) < y < randint(320, 350)):
+                textureColor = otro3
+            #--------------------
+            if (randint(1000, 1250) < x < randint(1250, 1350) and randint(230, 280) < y < randint(280, 320)):
+                textureColor = otro3
+            if (randint(1000, 1250) < x < randint(1250, 1350) and randint(230, 280) < y < randint(280, 320)):
+                textureColor = otro3
+            if (randint(1000, 1250) < x < randint(1250, 1350) and randint(230, 280) < y < randint(280, 320)):
+                textureColor = otro3
+            if (randint(1000, 1250) < x < randint(1250, 1350) and randint(230, 280) < y < randint(280, 320)):
+                textureColor = otro3
+            if (randint(1000, 1250) < x < randint(1250, 1350) and randint(230, 280) < y < randint(280, 320)):
+                textureColor = otro3
+            if (randint(1000, 1250) < x < randint(1250, 1350) and randint(230, 280) < y < randint(280, 320)):
+                textureColor = otro3
+            if (randint(1000, 1250) < x < randint(1250, 1350) and randint(230, 280) < y < randint(280, 320)):
+                textureColor = otro3
+            # Otro naranja
+            if (randint(600, 800) < x < randint(800, 900) and randint(300, 550) < y < randint(550, 600)):
+                textureColor = otro2
+        if (self.planet == False):
+            # colors
+            baseColor = color(88, 88, 88)
+            lighterColor = color(92, 92, 92)
+            darkerColor = color(53, 49, 49)
+
+            textureColor = baseColor
+
+            if (bool(random.getrandbits(1))):
+                if (bool(random.getrandbits(1))):
+                    textureColor = lighterColor
+                else:
+                    textureColor = darkerColor
+
+        textureIntensity = dot(vect, [0.8, 0, 0.2])
+
+        try:
+            return color(
+                int(textureColor[2] * textureIntensity) if (textureColor[0] * textureIntensity > 0) else 0,
+                int(textureColor[1] * textureIntensity) if (textureColor[1] * textureIntensity > 0) else 0,
+                int(textureColor[0] * textureIntensity) if (textureColor[2] * textureIntensity > 0) else 0
+            )
+        except:
+            pass
 
     def bounding_box(self, *vertices):
         """
