@@ -28,6 +28,7 @@ class Obj(object):
         self.vertices = []
         self.tvertices = []
         self.vfaces = []
+        self.normales = []
         self.read()
 
     def read(self):
@@ -43,6 +44,8 @@ class Obj(object):
                     self.tvertices.append(list(map(float, value.split(' '))))
                 elif prefix == 'f':
                     self.vfaces.append([list(map(try_int, face.split('/'))) for face in value.split(' ')])
+                elif prefix == 'vn':
+                    self.normales.append(list(map(float, value.split(' '))))
 
 
 # loads a texture (24 bit bmp) to memory
