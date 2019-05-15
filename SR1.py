@@ -126,6 +126,9 @@ class SoftwareRender(object):
     def load(self, filename, translate, scale, zbuffer_flag, light=[0, 0, 1]):
         self.window.load(filename, translate, scale, zbuffer_flag, light)
 
+    def load_shader(self, filename, translate, scale, zbuffer_flag, light=[0, 0, 1]):
+        self.window.load_shader(filename, translate, scale, zbuffer_flag, light)
+
     def load2(self, filename, translate, scale, rotate, light, eye, center, up):
         self.window.load2(filename, translate, scale, rotate, light, eye, center, up)
 
@@ -136,3 +139,6 @@ class SoftwareRender(object):
                           center=[0, 0, 0],
                           up=[0, 1, 0]):
         self.window.load_img_texture2(filename, translate, scale, rotate, texture, light, eye, center, up)
+
+    def set_planet(self,flag):
+        self.window.set_planet(flag)
