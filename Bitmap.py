@@ -633,9 +633,12 @@ class Bitmap(object):
                 grey = round(255 * intensity)
                 if grey < 0:
                     continue
-                self.triangle([x1, y1, z1], [x2, y2, z2], [x3, y3, z3], None, [], color(grey, grey, grey),
+                nA = model.normales[face[0][2] - 1]
+                nB = model.normales[face[1][2] - 1]
+                nC = model.normales[face[2][2] - 1]
+                self.triangleS([x1, y1, z1], [x2, y2, z2], [x3, y3, z3],nA,nB,nC, None, [], color(grey, grey, grey),
                               intensity)
-            elif vcount == 4:
+            """elif vcount == 4:
                 coords = tuple([(v[j][i]) for j in range(vcount) for i in range(vcount - 1)])
                 x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4 = self.transform_img_sr6_2(coords, translate, scale,
                                                                                           rotate, eye, center, up)
@@ -648,7 +651,7 @@ class Bitmap(object):
                 print(grey)
                 col = color(grey, grey, grey)
                 self.triangle(A, B, C, None, [], col, intensity)
-                self.triangle(A, C, D, None, [], col, intensity)
+                self.triangle(A, C, D, None, [], col, intensity)"""
 
     def load(self, filename, translate, scale, zbuffer_flag=False, light=[1, 0, 0]):
         """
@@ -688,7 +691,7 @@ class Bitmap(object):
                 self.triangle(A, B, C, None, [], col, intensity)
                 self.triangle(A, C, D, None, [], col, intensity)
 
-    def load_shader(self, filename, translate, scale, zbuffer_flag=False, light=[1, 0, 0]):
+    def load_shader(self, filename, translate, scale, zbuffer_flag=False, light=[1, 0, 1]):
         """
         Based on example of Graphics Course
         Loads an obj file in the screen
@@ -805,7 +808,6 @@ class Bitmap(object):
 
         vect = [normX, normY, normZ]
         textureColor = color(255, 255, 255)
-        print("entre")
         if (self.planet):
             # colors
             """
@@ -957,7 +959,7 @@ class Bitmap(object):
                 else:
                     textureColor = darkerColor
 
-        textureIntensity = dot(vect, [0.8, 0, 0.2])
+        textureIntensity = dot(vect, [0.1, 0.1, 1])
 
         try:
             return color(
