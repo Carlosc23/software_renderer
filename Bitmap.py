@@ -959,7 +959,7 @@ class Bitmap(object):
                 else:
                     textureColor = darkerColor
 
-        textureIntensity = dot(vect, [0.1, 0.1, 1])
+        textureIntensity = dot(vect, [0.8, 0.2, 0.15])
 
         try:
             return color(
