@@ -268,7 +268,7 @@ class Bitmap(object):
     def printStar(self, x, y, size):
         for cordX in range(size):
             for cordY in range(size):
-                self.point(cordX + x, cordY + y)
+                self.point(cordX + x, cordY + y,color(255,255,255))
 
     def transform_x(self, x):
         dx = x * (self.vpWidth / 2)
