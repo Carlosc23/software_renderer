@@ -787,9 +787,9 @@ class Bitmap(object):
                     color = texture.get_color(tx, ty, intensity)
                 z = vec1[2] * w + vec2[2] * v + vec3[2] * u
                 if self.planet:
-                    color = self.glSetGouradShaderNoTexture((x, y, z), (w, v, u), (nA, nB, nC))
+                    color = self.setShader((x, y, z), (w, v, u), (nA, nB, nC))
                 else:
-                    color = self.glSetGouradShaderNoTexture((x, y, z), (w, v, u), (nA, nB, nC))
+                    color = self.setShader((x, y, z), (w, v, u), (nA, nB, nC))
 
                 if x < 0 or y < 0:
                     continue
@@ -798,7 +798,7 @@ class Bitmap(object):
                     self.point(x, y, color)
                     self.zbuffer[x][y] = z
 
-    def glSetGouradShaderNoTexture(self,coords, bar,norms):
+    def setShader(self,coords, bar,norms):
         b1, b2, b3 = bar
         x, y,z = coords
         normalA, normalB, normalC = norms
@@ -810,19 +810,8 @@ class Bitmap(object):
         textureColor = color(255, 255, 255)
         if (self.planet):
             # colors
-            """
-            baseColor = color(175,57,7)
-            lighterColor = color(238, 135, 67)
-            darkerColor = color(179,92, 60)
-            purple_color = color(50, 15, 31)
-            top_color = color(142, 145, 145)
-            """
-            baseColor = color(175, 57, 7)
             lighterColor = color(244, 145, 77)
             darkerColor = color(215, 105, 54)
-            purple_color = color(90, 74, 74)
-            top_color = color(90, 74, 74)
-            textureColor = baseColor
             otro = color(221, 165, 104)
             otro2 = color(231, 122, 66)
             otro3 = color(105,110,110)
@@ -832,120 +821,105 @@ class Bitmap(object):
                 else:
                     textureColor = darkerColor
             textureColor = lighterColor
-
-            # if ((randint(500, 680) < x < randint(600, 700)) and (randint(500, 600) < y < randint(600, 700))):
-            #    textureColor = purple_color
-
-            # if ((randint(800, 1000) < x < randint(1000, 1200)) and (randint(500, 600) < y < randint(700, 800))):
-            #    textureColor = purple_color
-
-            # if ((randint(600, 700) < x < randint(700, 900)) and (randint(300, 350) < y < randint(350, 400))):
-            #    textureColor = purple_color
-
-            # if ((randint(850, 900) < x < randint(950, 1000)) and (randint(780, 820) < y < randint(820, 900))):
-            #    textureColor = top_color
-
-            # if ((randint(1100, 1250) < x < randint(1250, 1450)) and (randint(380, 420) < y < randint(420, 600))):
-            #    textureColor = otro
-            if (randint(1250, 1350) < x < randint(1350, 1400) and randint(380, 480) < y < randint(480, 650)):
+            if randint(1250, 1350) < x < randint(1350, 1400) and randint(380, 480) < y < randint(480, 650):
                 textureColor = otro
-            if (randint(1250, 1350) < x < randint(1350, 1400) and randint(380, 480) < y < randint(480, 650)):
+            if randint(1250, 1350) < x < randint(1350, 1400) and randint(380, 480) < y < randint(480, 650):
                 textureColor = otro
-            if (randint(1250, 1350) < x < randint(1350, 1400) and randint(380, 480) < y < randint(480, 650)):
+            if randint(1250, 1350) < x < randint(1350, 1400) and randint(380, 480) < y < randint(480, 650):
                 textureColor = otro
             #---------------------------------------
-            if (randint(750, 1000) < x < randint(1000, 1150) and randint(520, 580) < y < randint(580, 600)):
+            if randint(750, 1000) < x < randint(1000, 1150) and randint(520, 580) < y < randint(580, 600):
                 textureColor = otro
-            if (randint(750, 1000) < x < randint(1000, 1150) and randint(520, 580) < y < randint(580, 600)):
+            if randint(750, 1000) < x < randint(1000, 1150) and randint(520, 580) < y < randint(580, 600):
                 textureColor = otro
-            if (randint(750, 1000) < x < randint(1000, 1150) and randint(520, 580) < y < randint(580, 600)):
+            if randint(750, 1000) < x < randint(1000, 1150) and randint(520, 580) < y < randint(580, 600):
                 textureColor = otro
-            if (randint(750, 1000) < x < randint(1000, 1150) and randint(520, 580) < y < randint(580, 600)):
+            if randint(750, 1000) < x < randint(1000, 1150) and randint(520, 580) < y < randint(580, 600):
                 textureColor = otro
-            if (randint(750, 1000) < x < randint(1000, 1150) and randint(520, 580) < y < randint(580, 600)):
+            if randint(750, 1000) < x < randint(1000, 1150) and randint(520, 580) < y < randint(580, 600):
                 textureColor = otro
-            if (randint(750, 1000) < x < randint(1000, 1150) and randint(520, 580) < y < randint(580, 600)):
+            if randint(750, 1000) < x < randint(1000, 1150) and randint(520, 580) < y < randint(580, 600):
                 textureColor = otro
             #----------------------------------
-            if (randint(900, 1000) < x < randint(1000, 1150) and randint(180, 220) < y < randint(220, 250)):
+            if randint(900, 1000) < x < randint(1000, 1150) and randint(180, 220) < y < randint(220, 250):
                 textureColor = otro
-            if (randint(900, 1000) < x < randint(1000, 1150) and randint(180, 220) < y < randint(220, 250)):
+            if randint(900, 1000) < x < randint(1000, 1150) and randint(180, 220) < y < randint(220, 250):
                 textureColor = otro
-            if (randint(900, 1000) < x < randint(1000, 1150) and randint(180, 220) < y < randint(220, 250)):
+            if randint(900, 1000) < x < randint(1000, 1150) and randint(180, 220) < y < randint(220, 250):
                 textureColor = otro
-            if (randint(900, 1000) < x < randint(1000, 1150) and randint(180, 220) < y < randint(220, 250)):
+            if randint(900, 1000) < x < randint(1000, 1150) and randint(180, 220) < y < randint(220, 250):
                 textureColor = otro
-            if (randint(900, 1000) < x < randint(1000, 1150) and randint(180, 220) < y < randint(220, 250)):
+            if randint(900, 1000) < x < randint(1000, 1150) and randint(180, 220) < y < randint(220, 250):
                 textureColor = otro
-            if (randint(900, 1000) < x < randint(1000, 1150) and randint(180, 220) < y < randint(220, 250)):
+            if randint(900, 1000) < x < randint(1000, 1150) and randint(180, 220) < y < randint(220, 250):
                 textureColor = otro
             #----------------------------
-            if (randint(600, 800) < x < randint(800, 1000) and randint(600, 850) < y < randint(850, 950)):
+            if randint(600, 800) < x < randint(800, 1000) and randint(600, 850) < y < randint(850, 950):
                 textureColor = otro2
-            if (randint(600, 800) < x < randint(800, 1000) and randint(600, 850) < y < randint(850, 950)):
+            if randint(600, 800) < x < randint(800, 1000) and randint(600, 850) < y < randint(850, 950):
                 textureColor = otro2
-            if (randint(600, 800) < x < randint(800, 1000) and randint(600, 850) < y < randint(850, 950)):
+            if randint(600, 800) < x < randint(800, 1000) and randint(600, 850) < y < randint(850, 950):
                 textureColor = otro2
-            if (randint(600, 800) < x < randint(800, 1000) and randint(600, 850) < y < randint(850, 950)):
+            if randint(600, 800) < x < randint(800, 1000) and randint(600, 850) < y < randint(850, 950):
                 textureColor = otro2
-            if (randint(600, 800) < x < randint(800, 1000) and randint(600, 850) < y < randint(850, 950)):
+            if randint(600, 800) < x < randint(800, 1000) and randint(600, 850) < y < randint(850, 950):
                 textureColor = otro2
-            if (randint(600, 800) < x < randint(800, 1000) and randint(600, 850) < y < randint(850, 950)):
+            if randint(600, 800) < x < randint(800, 1000) and randint(600, 850) < y < randint(850, 950):
                 textureColor = otro2
-            if (randint(600, 800) < x < randint(800, 1000) and randint(600, 850) < y < randint(850, 950)):
+            if randint(600, 800) < x < randint(800, 1000) and randint(600, 850) < y < randint(850, 950):
                 textureColor = otro2
-            if (randint(600, 800) < x < randint(800, 1000) and randint(600, 850) < y < randint(850, 950)):
+            if randint(600, 800) < x < randint(800, 1000) and randint(600, 850) < y < randint(850, 950):
                 textureColor = otro2
             #-------------------
-            if (randint(660, 800) < x < randint(800, 860) and randint(600, 620) < y < randint(620, 650)):
+            if randint(660, 800) < x < randint(800, 860) and randint(600, 620) < y < randint(620, 650):
                 textureColor = otro3
-            if (randint(660, 800) < x < randint(800, 860) and randint(600, 620) < y < randint(620, 650)):
+            if randint(660, 800) < x < randint(800, 860) and randint(600, 620) < y < randint(620, 650):
                 textureColor = otro3
-            if (randint(660, 800) < x < randint(800, 860) and randint(600, 620) < y < randint(620, 650)):
+            if randint(660, 800) < x < randint(800, 860) and randint(600, 620) < y < randint(620, 650):
                 textureColor = otro3
-            if (randint(660, 800) < x < randint(800, 860) and randint(600, 620) < y < randint(620, 650)):
+            if randint(660, 800) < x < randint(800, 860) and randint(600, 620) < y < randint(620, 650):
                 textureColor = otro3
             #------------------
-            if (randint(450, 600) < x < randint(600, 700) and randint(300, 350) < y < randint(350, 400)):
+            if randint(450, 600) < x < randint(600, 700) and randint(300, 350) < y < randint(350, 400):
                 textureColor = otro3
-            if (randint(450, 600) < x < randint(600, 700) and randint(300, 350) < y < randint(350, 400)):
+            if randint(450, 600) < x < randint(600, 700) and randint(300, 350) < y < randint(350, 400):
                 textureColor = otro3
-            if (randint(450, 600) < x < randint(600, 700) and randint(300, 350) < y < randint(350, 400)):
+            if randint(450, 600) < x < randint(600, 700) and randint(300, 350) < y < randint(350, 400):
                 textureColor = otro3
-            if (randint(450, 600) < x < randint(600, 700) and randint(300, 350) < y < randint(350, 400)):
+            if randint(450, 600) < x < randint(600, 700) and randint(300, 350) < y < randint(350, 400):
                 textureColor = otro3
-            if (randint(450, 600) < x < randint(600, 700) and randint(300, 350) < y < randint(350, 400)):
-                textureColor = otro3
-            #--------------------
-            if (randint(680, 750) < x < randint(750, 800) and randint(280, 320) < y < randint(320, 350)):
-                textureColor = otro3
-            if (randint(680, 750) < x < randint(750, 800) and randint(280, 320) < y < randint(320, 350)):
-                textureColor = otro3
-            if (randint(680, 750) < x < randint(750, 800) and randint(280, 320) < y < randint(320, 350)):
-                textureColor = otro3
-            if (randint(680, 750) < x < randint(750, 800) and randint(280, 320) < y < randint(320, 350)):
-                textureColor = otro3
-            if (randint(680, 750) < x < randint(750, 800) and randint(280, 320) < y < randint(320, 350)):
+            if randint(450, 600) < x < randint(600, 700) and randint(300, 350) < y < randint(350, 400):
                 textureColor = otro3
             #--------------------
-            if (randint(1000, 1250) < x < randint(1250, 1350) and randint(230, 280) < y < randint(280, 320)):
+            if randint(680, 750) < x < randint(750, 800) and randint(280, 320) < y < randint(320, 350):
                 textureColor = otro3
-            if (randint(1000, 1250) < x < randint(1250, 1350) and randint(230, 280) < y < randint(280, 320)):
+            if randint(680, 750) < x < randint(750, 800) and randint(280, 320) < y < randint(320, 350):
                 textureColor = otro3
-            if (randint(1000, 1250) < x < randint(1250, 1350) and randint(230, 280) < y < randint(280, 320)):
+            if randint(680, 750) < x < randint(750, 800) and randint(280, 320) < y < randint(320, 350):
                 textureColor = otro3
-            if (randint(1000, 1250) < x < randint(1250, 1350) and randint(230, 280) < y < randint(280, 320)):
+            if randint(680, 750) < x < randint(750, 800) and randint(280, 320) < y < randint(320, 350):
                 textureColor = otro3
-            if (randint(1000, 1250) < x < randint(1250, 1350) and randint(230, 280) < y < randint(280, 320)):
+            if randint(680, 750) < x < randint(750, 800) and randint(280, 320) < y < randint(320, 350):
                 textureColor = otro3
-            if (randint(1000, 1250) < x < randint(1250, 1350) and randint(230, 280) < y < randint(280, 320)):
+            #--------------------
+            if randint(1000, 1250) < x < randint(1250, 1350) and randint(230, 280) < y < randint(280, 320):
                 textureColor = otro3
-            if (randint(1000, 1250) < x < randint(1250, 1350) and randint(230, 280) < y < randint(280, 320)):
+            if randint(1000, 1250) < x < randint(1250, 1350) and randint(230, 280) < y < randint(280, 320):
+                textureColor = otro3
+            if randint(1000, 1250) < x < randint(1250, 1350) and randint(230, 280) < y < randint(280, 320):
+                textureColor = otro3
+            if randint(1000, 1250) < x < randint(1250, 1350) and randint(230, 280) < y < randint(280, 320):
+                textureColor = otro3
+            if randint(1000, 1250) < x < randint(1250, 1350) and randint(230, 280) < y < randint(280, 320):
+                textureColor = otro3
+            if randint(1000, 1250) < x < randint(1250, 1350) and randint(230, 280) < y < randint(280, 320):
+                textureColor = otro3
+            if randint(1000, 1250) < x < randint(1250, 1350) and randint(230, 280) < y < randint(280, 320):
                 textureColor = otro3
             # Otro naranja
-            if (randint(600, 800) < x < randint(800, 900) and randint(300, 550) < y < randint(550, 600)):
+            if randint(600, 800) < x < randint(800, 900) and randint(300, 550) < y < randint(550, 600):
                 textureColor = otro2
-        if (self.planet == False):
+        if self.planet == False:
             # colors
             baseColor = color(88, 88, 88)
             lighterColor = color(92, 92, 92)
@@ -953,8 +927,8 @@ class Bitmap(object):
 
             textureColor = baseColor
 
-            if (bool(random.getrandbits(1))):
-                if (bool(random.getrandbits(1))):
+            if bool(random.getrandbits(1)):
+                if bool(random.getrandbits(1)):
                     textureColor = lighterColor
                 else:
                     textureColor = darkerColor
