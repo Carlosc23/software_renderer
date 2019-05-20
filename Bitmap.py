@@ -208,7 +208,7 @@ class Bitmap(object):
             # To avoid index out of range exceptions
             pass
     def set_fondo(self,pix):
-        t = Texture('./models/bosque6.bmp')
+        t = Texture('./models/bosque7.bmp')
         self.pixels = t.pixels
     def square(self, size):
         cordx = int((self.vpWidth / 2)) - int(size / 2)
@@ -613,6 +613,51 @@ class Bitmap(object):
                 self.triangle(a, c, d, color=None, texture=texture, texture_coords=[v2[0], v2[2], v2[3]],
                               intensity=intensity)
 
+    def load3(self, filename,texture, translate, scale, rotate, light=[1, 0, 0], eye=[0, 0, 1], center=[0, 0, 0],
+              up=[0, 1, 0]):
+        """
+        Based on example of Graphics Course
+        Loads an obj file in the screen
+        wireframe only
+        Input:
+          filename: the full path of the obj file
+          translate: (translateX, translateY) how much the model will be translated during render
+          scale: (scaleX, scaleY) how much the model should be scaled
+        """
+        light = norm(light)
+        model = obj_loader(filename)
+        for face in model.vfaces:
+            vcount = len(face)
+            v = calc_v(model.vertices, face, 0, vcount)
+            if vcount == 3:
+                coords = tuple([(v[i][j]) for i in range(vcount) for j in range(vcount)])
+                x1, y1, z1, x2, y2, z2, x3, y3, z3 = self.transform_img_sr6(coords, translate, scale, rotate, eye,
+                                                                            center, up)
+                intensity = calc_intensity([x1, y1, z1], [x2, y2, z2], [x3, y3, z3], light)
+                grey = round(255 * intensity)
+                if grey < 0:
+                    continue
+                #nA = model.normales[face[0][2] - 1]
+                #nB = model.normales[face[1][2] - 1]
+                #nC = model.normales[face[2][2] - 1]
+                v2 = calc_v(model.tvertices, face, 1, vcount)
+                self.triangle([x1, y1, z1], [x2, y2, z2], [x3, y3, z3], texture, v2, None,
+                              intensity)
+            elif vcount == 4:
+                coords = tuple([(v[j][i]) for j in range(vcount) for i in range(vcount - 1)])
+                x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4 = self.transform_img_sr6_2(coords, translate, scale,
+                                                                                          rotate, eye, center, up)
+                vertices = [[x1, y1, z1], [x2, y2, z2], [x3, y3, z3], [x4, y4, z4]]
+                intensity = calc_intensity(vertices[0], vertices[1], vertices[2], light)
+                grey = round(255 * intensity)
+                A, B, C, D = vertices
+                v2 = calc_v(model.tvertices, face, 1, vcount)
+                if grey < 0:
+                    continue
+                #print(grey)
+                #col = color(grey, grey, grey)
+                self.triangle(A, B, C, texture,  [v2[0], v2[1], v2[2]], None, intensity)
+                self.triangle(A, C, D, texture, [v2[0], v2[2], v2[3]], None, intensity)
     def load2(self, filename, translate, scale, rotate, light=[1, 0, 0], eye=[0, 0, 1], center=[0, 0, 0],
               up=[0, 1, 0]):
         """
