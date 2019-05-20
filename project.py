@@ -8,7 +8,7 @@ x.glClear()
 t = Texture('./models/bosque6.bmp')
 # print(t.pixels)
 x.set_fondo(t.pixels)
-
+# Agregar modelos
 t = Texture('./models/deertx.bmp')
 x.load3("./models/deer2.obj", t, translate=(-1.2, -0.7, 0), scale=(0.15, 0.15, 0.15), rotate=(0, -0.5, 0),
         light=[0, 0.75, 1.5], eye=[0, 0, 1], center=[0, 0, 0],
