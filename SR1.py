@@ -142,3 +142,6 @@ class SoftwareRender(object):
 
     def set_planet(self,flag):
         self.window.set_planet(flag)
+
+    def set_fondo(self,pix):
+        self.window.set_fondo(pix)

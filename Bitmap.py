@@ -9,7 +9,7 @@ from math import ceil
 from utils import *
 from math_op import *
 from obj_loader import Obj as obj_loader
-
+from obj_loader import Texture
 
 class Bitmap(object):
     """
@@ -207,7 +207,9 @@ class Bitmap(object):
         except:
             # To avoid index out of range exceptions
             pass
-
+    def set_fondo(self,pix):
+        t = Texture('./models/bosque6.bmp')
+        self.pixels = t.pixels
     def square(self, size):
         cordx = int((self.vpWidth / 2)) - int(size / 2)
         cordy = int((self.vpWidth / 2)) - int(size / 2)
@@ -561,15 +563,17 @@ class Bitmap(object):
         model = obj_loader(filename)
         for face in model.vfaces:
             vcount = len(face)
-            v = calc_v(model.vertices, face, 0, vcount)
+
             if vcount == 3:
+                v = calc_v(model.vertices, face, 0, vcount)
                 coords = tuple([(v[i][j]) for i in range(vcount) for j in range(vcount)])
                 x1, y1, z1, x2, y2, z2, x3, y3, z3 = self.transform_img(coords, translate, scale)
                 intensity = calc_intensity([x1, y1, z1], [x2, y2, z2], [x3, y3, z3], light)
                 v2 = calc_v(model.tvertices, face, 1, vcount)
                 self.triangle([x1, y1, z1], [x2, y2, z2], [x3, y3, z3], color=None, texture=texture,
                               texture_coords=v2, intensity=intensity)
-            else:
+            elif vcount==4:
+                v = calc_v(model.vertices, face, 0, vcount)
                 coords = tuple([(v[j][i]) for j in range(vcount) for i in range(vcount - 1)])
                 x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4 = self.transform_img2(coords, translate, scale)
                 vertices = [[x1, y1, z1], [x2, y2, z2], [x3, y3, z3], [x4, y4, z4]]
@@ -633,12 +637,12 @@ class Bitmap(object):
                 grey = round(255 * intensity)
                 if grey < 0:
                     continue
-                nA = model.normales[face[0][2] - 1]
-                nB = model.normales[face[1][2] - 1]
-                nC = model.normales[face[2][2] - 1]
-                self.triangleS([x1, y1, z1], [x2, y2, z2], [x3, y3, z3],nA,nB,nC, None, [], color(grey, grey, grey),
+                #nA = model.normales[face[0][2] - 1]
+                #nB = model.normales[face[1][2] - 1]
+                #nC = model.normales[face[2][2] - 1]
+                self.triangle([x1, y1, z1], [x2, y2, z2], [x3, y3, z3], None, [], color(grey, grey, grey),
                               intensity)
-            """elif vcount == 4:
+            elif vcount == 4:
                 coords = tuple([(v[j][i]) for j in range(vcount) for i in range(vcount - 1)])
                 x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4 = self.transform_img_sr6_2(coords, translate, scale,
                                                                                           rotate, eye, center, up)
@@ -651,7 +655,7 @@ class Bitmap(object):
                 print(grey)
                 col = color(grey, grey, grey)
                 self.triangle(A, B, C, None, [], col, intensity)
-                self.triangle(A, C, D, None, [], col, intensity)"""
+                self.triangle(A, C, D, None, [], col, intensity)
 
     def load(self, filename, translate, scale, zbuffer_flag=False, light=[1, 0, 0]):
         """
@@ -667,8 +671,9 @@ class Bitmap(object):
         model = obj_loader(filename)
         for face in model.vfaces:
             vcount = len(face)
-            v = calc_v(model.vertices, face, 0, vcount)
+
             if vcount == 3:
+                v = calc_v(model.vertices, face, 0, vcount)
                 coords = tuple([(v[i][j]) for i in range(vcount) for j in range(vcount)])
                 x1, y1, z1, x2, y2, z2, x3, y3, z3 = self.transform_img(coords, translate, scale)
                 intensity = calc_intensity([x1, y1, z1], [x2, y2, z2], [x3, y3, z3], light)
@@ -678,6 +683,7 @@ class Bitmap(object):
                 self.triangle([x1, y1, z1], [x2, y2, z2], [x3, y3, z3], None, [], color(grey, grey, grey),
                               intensity)
             elif vcount == 4:
+                v = calc_v(model.vertices, face, 0, vcount)
                 print(vcount)
                 coords = tuple([(v[j][i]) for j in range(vcount) for i in range(vcount - 1)])
                 x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4 = self.transform_img2(coords, translate, scale)
