@@ -519,6 +519,57 @@ class Bitmap(object):
                 if z > self.zbuffer[x][y]:
                     self.point(x, y, color)
                     self.zbuffer[x][y] = z
+    def trianglel(self,A,B,C,color):
+        if A[1] > B[1]:
+                A, B = B, A
+        if A[1] > C[1]:
+                A, C = C, A
+        if B[1] > C[1]:
+                B, C = C, B
+
+        dx_ac = C[0] - A[0]
+        dy_ac = C[1] - A[1]
+
+        if dy_ac > 0:
+                mi_ac = dx_ac / dy_ac
+        else:
+                mi_ac = 0
+
+        dx_ab = B[0] - A[0]
+        dy_ab = B[1] - A[1]
+
+        if dy_ab > 0:
+                mi_ab = dx_ab / dy_ab
+        else:
+                mi_ab = 0
+
+        for y in range(A[1], B[1] + 1):
+                xi = round(A[0] - mi_ac * (A[1] - y))
+                xf = round(A[0] - mi_ab * (A[1] - y))
+
+                if xi > xf:
+                        xi, xf = xf, xi
+
+                for x in range(xi, xf + 1):
+                        self.point(x, y, color)
+
+        dx_bc = C[0] - B[0]
+        dy_bc = C[1] - B[1]
+
+        if dy_bc > 0:
+                mi_bc = dx_bc / dy_bc
+        else:
+                mi_bc = 0
+
+        for y in range(B[1], C[1] + 1):
+                xi = round(A[0] - mi_ac * (A[1] - y))
+                xf = round(B[0] - mi_bc * (B[1] - y))
+
+                if xi > xf:
+                        xi, xf = xf, xi
+
+                for x in range(xi, xf + 1):
+                        self.point(x, y, color)
 
     def bounding_box(self, *vertices):
         """
