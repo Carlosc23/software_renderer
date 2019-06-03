@@ -40,9 +40,12 @@ class Bitmap(object):
         self.viewPort = 0
         self.glclear()
         self.planet = True
+        self.textureName = ''
 
     def set_planet(self,flag):
         self.planet = False
+    def set_name(self,flag):
+        self.textureName = flag
     def glclear(self):
         """
         Fill the the pixels object with a color
@@ -742,7 +745,7 @@ class Bitmap(object):
                 self.triangle(A, B, C, None, [], col, intensity)
                 self.triangle(A, C, D, None, [], col, intensity)
 
-    def load_shader(self, filename, translate, scale, zbuffer_flag=False, light=[1, 0, 1]):
+    def load_shader(self, filename,texture, translate, scale, zbuffer_flag=False, light=[1, 0, 1]):
         """
         Based on example of Graphics Course
         Loads an obj file in the screen
@@ -767,7 +770,7 @@ class Bitmap(object):
                 nA = model.normales[face[0][2] - 1]
                 nB = model.normales[face[1][2] - 1]
                 nC = model.normales[face[2][2] - 1]
-                self.triangleS([x1, y1, z1], [x2, y2, z2], [x3, y3, z3],nA, nB, nC, None, [], color(grey, grey, grey),
+                self.triangleS([x1, y1, z1], [x2, y2, z2], [x3, y3, z3],nA, nB, nC, texture, [], color(grey, grey, grey),
                               intensity)
             """elif vcount == 4:
                 print(vcount)
@@ -782,6 +785,65 @@ class Bitmap(object):
                 col = color(grey, grey, grey)
                 self.triangle(A, B, C, None, [], col, intensity)
                 self.triangle(A, C, D, None, [], col, intensity)"""
+    def load4(self, filename,texture, translate, scale, rotate, light=[1, 0, 0], eye=[0, 0, 1], center=[0, 0, 0],
+              up=[0, 1, 0]):
+        """
+        Based on example of Graphics Course
+        Loads an obj file in the screen
+        wireframe only
+        Input:
+          filename: the full path of the obj file
+          translate: (translateX, translateY) how much the model will be translated during render
+          scale: (scaleX, scaleY) how much the model should be scaled
+        """
+
+        light = norm(light)
+        model = obj_loader(filename)
+        for face in model.vfaces:
+            vcount = len(face)
+            v = calc_v(model.vertices, face, 0, vcount)
+            if vcount == 3:
+                print("9 veces")
+                coords = tuple([(v[i][j]) for i in range(vcount) for j in range(vcount)])
+                x1, y1, z1, x2, y2, z2, x3, y3, z3 = self.transform_img_sr6(coords, translate, scale, rotate, eye,
+                                                                            center, up)
+                intensity = calc_intensity([x1, y1, z1], [x2, y2, z2], [x3, y3, z3], light)
+                grey = round(255 * intensity)
+                if grey < 0:
+                    continue
+                nA = model.normales[face[0][2] - 1]
+                nB = model.normales[face[1][2] - 1]
+                nC = model.normales[face[2][2] - 1]
+                v2 = calc_v(model.tvertices, face, 1, vcount)
+
+                self.triangleS([x1, y1, z1], [x2, y2, z2], [x3, y3, z3],nA, nB, nC, texture, v2, color(grey, grey, grey),
+                              intensity)
+
+            elif vcount == 4:
+                coords = tuple([(v[j][i]) for j in range(vcount) for i in range(vcount - 1)])
+                x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4 = self.transform_img_sr6_2(coords, translate, scale,
+                                                                                          rotate, eye, center, up)
+                vertices = [[x1, y1, z1], [x2, y2, z2], [x3, y3, z3], [x4, y4, z4]]
+                intensity = calc_intensity(vertices[0], vertices[1], vertices[2], light)
+                grey = round(255 * intensity)
+                A, B, C, D = vertices
+                v2 = calc_v(model.tvertices, face, 1, vcount)
+                if grey < 0:
+                    continue
+                #print(grey)
+                #col = color(grey, grey, grey)
+                nA = model.normales[face[0][2] - 1]
+                nB = model.normales[face[1][2] - 1]
+                nC = model.normales[face[2][2] - 1]
+                nD = model.normales[face[3][2] - 1]
+                self.triangleS(A, B, C, nA, nB, nC, texture, [v2[0], v2[1], v2[2]],
+                               color(grey, grey, grey),
+                               intensity)
+                self.triangleS(A, C, D, nA, nB, nD, texture, [v2[0], v2[2], v2[3]],
+                               color(grey, grey, grey),
+                               intensity)
+                #self.triangleS(A, B, C, texture,  [v2[0], v2[1], v2[2]], None, intensity)
+                #self.triangleS(A, C, D, texture, [v2[0], v2[2], v2[3]], None, intensity)
 
     def barycentric(self, vec1, vec2, vec3, P):
         vect1 = [vec3[0] - vec1[0], vec2[0] - vec1[0], vec1[0] - P[0]]
@@ -831,23 +893,117 @@ class Bitmap(object):
                 if w < 0 or v < 0 or u < 0:
                     continue
                 if texture:
+                    #print("textura")
                     tA, tB, tC = texture_coords[0], texture_coords[1], texture_coords[2]
                     tx = tA[0] * w + tB[0] * v + tC[0] * u
                     ty = tA[1] * w + tB[1] * v + tC[1] * u
 
                     color = texture.get_color(tx, ty, intensity)
-                z = vec1[2] * w + vec2[2] * v + vec3[2] * u
-                if self.planet:
-                    color = self.setShader((x, y, z), (w, v, u), (nA, nB, nC))
-                else:
-                    color = self.setShader((x, y, z), (w, v, u), (nA, nB, nC))
-
+                    z = vec1[2] * w + vec2[2] * v + vec3[2] * u
+                    if self.textureName == "Deer":
+                        color = self.gourad((tx, ty, z), (w, v, u), (nA, nB, nC), texture)
+                    elif self.textureName == "Bird":
+                        color = self.shader2((tx, ty, z), (w, v, u), (nA, nB, nC), texture)
+                    elif self.textureName == "Bird2":
+                        color = self.shader1((tx, ty, z), (w, v, u), (nA, nB, nC), texture)
+                    elif self.textureName == "Deer2":
+                        color = self.shader3((tx, ty, z), (w, v, u), (nA, nB, nC), texture)
+                    elif self.textureName == "frog":
+                        color = self.gourad((tx, ty, z), (w, v, u), (nA, nB, nC), texture)
+                    elif self.textureName == "raccoon":
+                        color = self.gourad((tx, ty, z), (w, v, u), (nA, nB, nC), texture)
                 if x < 0 or y < 0:
                     continue
 
                 if x < len(self.zbuffer) and y < len(self.zbuffer[x]) and z > self.zbuffer[x][y]:
                     self.point(x, y, color)
                     self.zbuffer[x][y] = z
+
+    def shader1(self,coords, bar,norms,t):
+        w, v, u = bar
+        x, y,z = coords
+        nA, nB, nC = norms
+        texture = t
+        nx = nA[0] * w + nB[0] * v + nC[0] * u
+        ny = nA[1] * w + nB[1] * v + nC[1] * u
+        nz = nA[2] * w + nB[2] * v + nC[2] * u
+
+        vn = [nx, ny, nz]  
+
+        intensity = dot(vn, [0, 0, 1])
+        if intensity < 0:
+            intensity = 0
+        if intensity > 1:
+            intensity = 1
+        tcolor = texture.get_color(x, y, 1)
+        try:
+            return color(int((255 - tcolor[0]) * intensity), int((260 - tcolor[1]) * intensity),
+                         int((260 - tcolor[2]) * intensity))
+        except:
+            pass
+
+    def shader2(self,coords, bar,norms,t):
+        w, v, u = bar
+        x, y,z = coords
+        nA, nB, nC = norms
+        texture = t
+        tx = x
+        ty = y
+        nx = (nA[0] * w + nB[0] * v + nC[0] * u)
+        ny = (nA[1] * w + nB[1]* v + nC[1] * u)
+        nz = (nA[2] * w + nB[2] * v + nC[2] * u)
+
+        vn = [nx, ny, nz]  
+        light = 1
+        intensity = dot(vn, [0, 0, 1])
+        if intensity < 0:
+            intensity = 0
+        elif intensity > 1:
+            intensity = 1
+
+        tcolor = texture.get_color(tx, ty, intensity)
+        return color(int(tcolor[2] * light), int(tcolor[1] * light), int(tcolor[0] * light))
+
+    def shader3(self,coords, bar,norms,t):
+        w, v, u = bar
+        x, y, z = coords
+        nA, nB, nC = norms
+        texture = t
+        nx = nA[0] * w + nB[0] * v + nC[0] * u
+        ny = nA[1] * w + nB[1] * v + nC[1] * u
+        nz = nA[2] * w + nB[2] * v + nC[2] * u
+
+        vn = [nx, ny, nz]  
+
+        intensity = dot(vn, [0, 0, 1])
+        if intensity < 0:
+            intensity = 0
+        elif intensity > 1:
+            intensity = 1
+        tx = x
+        ty = x
+        tcolor = texture.get_color(tx, ty, intensity)
+        return color(int(tcolor[2]), int(tcolor[1]), int(tcolor[0]))
+
+    def gourad(self,coords, bar,norms,t):
+        w, v, u = bar
+        x, y, z = coords
+        nA, nB, nC = norms
+        texture = t
+
+        tcolor = texture.get_color(x, y)
+        nx = nA[0] * w + nB[0] * v + nC[0] * u
+        ny = nA[1] * w + nB[1] * v + nC[1] * u
+        nz = nA[2] * w + nB[2] * v + nC[2] * u
+
+        vn = [nx, ny, nz]  
+
+        intensity = dot(vn, [0, 0, 1])
+        if intensity < 0:
+            intensity = 0
+        return color(
+            int(tcolor[2] * intensity), int(tcolor[1] * intensity), int(tcolor[0] * intensity)
+        )
 
     def setShader(self,coords, bar,norms):
         b1, b2, b3 = bar

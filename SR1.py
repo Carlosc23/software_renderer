@@ -135,6 +135,9 @@ class SoftwareRender(object):
     def load3(self, filename,texture, translate, scale, rotate, light, eye, center, up):
         self.window.load3(filename,texture, translate, scale, rotate, light, eye, center, up)
 
+    def load4(self, filename, texture, translate, scale, rotate, light, eye, center, up):
+        self.window.load4(filename, texture, translate, scale, rotate, light, eye, center, up)
+
     def load_img_texture(self, filename, translate, scale, texture, light=[0, 0, 1]):
         self.window.load_img_texture(filename, translate, scale, texture, light)
 
@@ -145,6 +148,9 @@ class SoftwareRender(object):
 
     def set_planet(self,flag):
         self.window.set_planet(flag)
+
+    def set_name(self,flag):
+        self.window.set_name(flag)
 
     def set_fondo(self,pix):
         self.window.set_fondo(pix)
