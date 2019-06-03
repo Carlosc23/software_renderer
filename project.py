@@ -1,11 +1,11 @@
 from SR1 import SoftwareRender
 from obj_loader import Texture
 
-x = SoftwareRender('bosque3.bmp')
+x = SoftwareRender('bosqueshaders.bmp')
 x.glCreateWindow(1280, 1280)
 x.glViewPort(0, 0, 1280, 1280)
 x.glClear()
-t = Texture('./models/bosque6.bmp')
+t = Texture('./models/bosque7.bmp')
 print(t.pixels)
 x.set_fondo(t.pixels)
 # Agregar modelos
